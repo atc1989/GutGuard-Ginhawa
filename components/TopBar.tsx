@@ -12,7 +12,7 @@ function IconX() {
   );
 }
 
-export function TopBar({ onBook, booked }: { onBook: () => void; booked?: boolean }) {
+export function TopBar() {
   const [open, setOpen] = useState(false);
   const shop = shopEntryUrl();
 
@@ -39,11 +39,6 @@ export function TopBar({ onBook, booked }: { onBook: () => void; booked?: boolea
           <span className="topbar-soon">Gentrep · soon</span>
         </nav>
         <div className="topbar-actions">
-          {booked ? null : (
-            <button className="gg-button gg-button--primary topbar-book" type="button" onClick={onBook}>
-              Book my seat
-            </button>
-          )}
           <button
             className="topbar-menu"
             type="button"
@@ -62,18 +57,6 @@ export function TopBar({ onBook, booked }: { onBook: () => void; booked?: boolea
             <button type="button" className="gg-icon-btn" aria-label="Close" onClick={() => setOpen(false)}>
               <IconX />
             </button>
-            {booked ? null : (
-              <button
-                className="gg-button gg-button--primary gg-button--wide"
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  onBook();
-                }}
-              >
-                Book my seat
-              </button>
-            )}
             <a href="#event" aria-current="page" onClick={() => setOpen(false)}>Event</a>
             <a href={shop}>Shop</a>
             <span className="topbar-soon">Lifestyle · soon</span>

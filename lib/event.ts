@@ -6,59 +6,88 @@ export type Clinician = {
   initials: string;
   photo: string | null;
   licence: string;
-  creds: string[];
-  line: string;
+  credentialsMd: string;
 };
 
-export const PASS_PTS = 750;
-export const GIFT_PESO = PASS_PTS;
-
-export const TEAM: Clinician[] = [
-  {
-    id: "aca",
-    name: "Dr. Jocelyn Aca",
-    suffix: "MD",
-    role: "Physician",
-    initials: "JA",
-    photo: null,
-    licence: "PRC No. ______",
-    creds: [
-      "Doctor of Medicine, ______",
-      "Licensed by the Professional Regulation Commission",
-      "______ years in general practice",
-    ],
-    line: "Dr. Aca sees patients here every Saturday.",
-  },
-  {
-    id: "marentes",
-    name: "Ms. Marentes",
-    suffix: "RN",
-    role: "Nurse",
-    initials: "M",
-    photo: null,
-    licence: "PRC No. ______",
-    creds: [
-      "Bachelor of Science in Nursing, ______",
-      "Licensed by the Professional Regulation Commission",
-      "______ years in ______",
-    ],
-    line: "Ms. Marentes takes your blood pressure and sits in on the consultation.",
-  },
-];
-
-export const VIDEO = {
-  src: null as string | null,
-  poster: null as string | null,
-  length: "1:40",
-  caption: "Dr. Aca and Ms. Marentes explain what happens on Saturday.",
+export type GinhawaLanding = {
+  sourceEventId: string;
+  title: string;
+  dateLabel: string;
+  timeLabel: string;
+  heroWhat: string;
+  giftPoints: number;
+  giftPeso: number;
+  capacity: number | null;
+  seatsTaken: number;
+  clinicians: Clinician[];
+  videoUrl: string | null;
+  videoLength: string | null;
+  videoCaption: string | null;
+  askTitle: string;
+  askBody: string;
+  askHit: string;
+  gutTitle: string;
+  gutBody: string;
+  gutClose: string;
+  venueName: string | null;
+  venueAddress: string | null;
+  mapUrl: string | null;
 };
 
-export const EVENT = {
-  date: "Saturday, 23 August",
-  time: "9:00 AM",
-  venue: "Gutguard Medical Consultation Pod",
-  address: "#15 JVA Building, Quirino Avenue, Davao City",
-  maps: "https://maps.google.com/?q=JVA+Building+Quirino+Avenue+Davao+City",
-  seats: 40,
-  taken: 28,
-};
+function str(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function num(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function parseClinicians(raw: unknown): Clinician[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.slice(0, 4).map((item, i) => {
+    const row = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
+    const name = str(row.name) || "Clinician";
+    const initials = str(row.initials);
+    return {
+      id: str(row.id) || `clinician-${i}`,
+      name,
+      suffix: str(row.suffix),
+      role: str(row.role),
+      initials: initials || name.slice(0, 2).toUpperCase(),
+      photo: str(row.photo) || null,
+      licence: str(row.licence),
+      credentialsMd: str(row.credentialsMd) || str(row.credentials_md),
+    };
+  });
+}
+
+export function parseLandingPayload(raw: unknown): GinhawaLanding | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  const title = str(row.title);
+  if (!title) return null;
+  return {
+    sourceEventId: str(row.source_event_id),
+    title,
+    dateLabel: str(row.date_label),
+    timeLabel: str(row.time_label),
+    heroWhat: str(row.hero_what),
+    giftPoints: num(row.gift_points) ?? 0,
+    giftPeso: num(row.gift_peso) ?? 0,
+    capacity: num(row.capacity),
+    seatsTaken: num(row.seats_taken) ?? 0,
+    clinicians: parseClinicians(row.clinicians),
+    videoUrl: str(row.video_url) || null,
+    videoLength: str(row.video_length) || null,
+    videoCaption: str(row.video_caption) || null,
+    askTitle: str(row.ask_title),
+    askBody: str(row.ask_body),
+    askHit: str(row.ask_hit),
+    gutTitle: str(row.gut_title),
+    gutBody: str(row.gut_body),
+    gutClose: str(row.gut_close),
+    venueName: str(row.venue_name) || null,
+    venueAddress: str(row.venue_address) || null,
+    mapUrl: str(row.map_url) || null,
+  };
+}

@@ -26,9 +26,8 @@ const anton = Anton({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_GINHAWA_URL ?? "https://ginhawa.gutguard.ph"),
-  title: "GutGuard Ginhawa — Free Medical Check Up",
-  description:
-    "Free Saturday medical check-up at Gutguard. Book a seat. Go home with a Ginhawa Pass and 750 E-Points.",
+  title: "GutGuard Ginhawa",
+  description: "Free medical check-up at Gutguard.",
 };
 
 export const viewport: Viewport = {
