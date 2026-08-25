@@ -74,8 +74,20 @@ function clinicianLabel(p: Clinician) {
   return p.suffix ? `${p.name}, ${p.suffix}` : p.name;
 }
 
+type Holder = { name: string; mobile: string; cardNo: string };
+
+function cardNo() {
+  let n = "0240";
+  for (let i = 0; i < 3; i++) n += " " + String(1000 + Math.floor(Math.random() * 9000));
+  return n;
+}
+
 export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
   const [who, setWho] = useState<Clinician | null>(null);
+  const [claim, setClaim] = useState(false);
+  const [name, setName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [holder, setHolder] = useState<Holder | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
   const shop = shopEntryUrl();
@@ -86,10 +98,13 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
   const showVenue = Boolean(landing.venueName || landing.venueAddress || landing.mapUrl);
   const showAsk = Boolean(landing.askTitle || landing.askBody || landing.askHit);
   const showGut = Boolean(landing.gutTitle || landing.gutBody || landing.gutClose);
+  const sent = Boolean(holder);
+  const valid = name.trim().length > 1 && mobile.replace(/\D/g, "").length >= 10;
+  const overlayOpen = claim || Boolean(who);
 
   useEffect(() => {
-    document.body.style.overflow = who ? "hidden" : "";
-    if (!who) return;
+    document.body.style.overflow = overlayOpen ? "hidden" : "";
+    if (!overlayOpen) return;
 
     restoreFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const root = dialogRef.current;
@@ -102,10 +117,12 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
       );
     };
     const items = focusables();
-    items[0]?.focus();
+    const input = items.find((el) => el.tagName === "INPUT");
+    (input ?? items[0])?.focus();
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        setClaim(false);
         setWho(null);
         return;
       }
@@ -128,7 +145,41 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
       window.removeEventListener("keydown", onKey);
       restoreFocus.current?.focus();
     };
-  }, [who]);
+  }, [overlayOpen]);
+
+  const openClaim = () => {
+    if (sent) return;
+    setClaim(true);
+  };
+
+  const issue = (n: string, m: string) => {
+    setHolder({ name: n.trim(), mobile: m.trim(), cardNo: cardNo() });
+    setName(n.trim());
+    setMobile(m.trim());
+    setClaim(false);
+  };
+
+  const downloadQR = () => {
+    if (!holder) return;
+    const seed = holder.cardNo;
+    const N = 21, px = 12, pad = 4, size = (N + pad * 2) * px;
+    const cv = document.createElement("canvas");
+    cv.width = cv.height = size;
+    const g = cv.getContext("2d");
+    if (!g) return;
+    g.fillStyle = "#fff";
+    g.fillRect(0, 0, size, size);
+    g.fillStyle = "#0e2249";
+    qrCells(seed, N).forEach((row, y) =>
+      row.forEach((on, x) => {
+        if (on) g.fillRect((x + pad) * px, (y + pad) * px, px, px);
+      }),
+    );
+    const a = document.createElement("a");
+    a.href = cv.toDataURL("image/png");
+    a.download = "gutguard-card-" + seed.replace(/\s/g, "") + ".png";
+    a.click();
+  };
 
   return (
     <div id="top">
@@ -242,30 +293,67 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
                 <div className="sec"><span className="sec-num">02</span> A gift for our guests · limited</div>
                 <h3>You go home with this.</h3>
               </div>
-              <div className="lc">
-                <img src="/watermark.png" alt="" aria-hidden="true" className="lc-mark" />
-                <div className="lc-body">
-                  <span className="lc-chev" aria-hidden="true">▲</span>
-                  <div className="lc-brand">
-                    <img src="/wordmark.png" alt="Gutguard" />
-                    <div className="lc-lifestyle">Lifestyle</div>
-                  </div>
-                  <div className="lc-claim">
-                    Your name
-                  </div>
-                  <div className="lc-state">NOT YET ACTIVE</div>
-                  <div className="lc-no">0240 •••• •••• ••••</div>
-                  <div className="lc-since">Issued on the day</div>
-                  <div className="lc-row">
-                    <span className="lc-pad" aria-hidden="true" />
-                    <div className="lc-pts">
-                      <div className="lc-num">{landing.giftPoints}</div>
-                      <div className="lc-lbl">E-POINTS</div>
+              {holder ? (
+                <div className="lc">
+                  <img src="/watermark.png" alt="" aria-hidden="true" className="lc-mark" />
+                  <div className="lc-body">
+                    <span className="lc-chev" aria-hidden="true">▲</span>
+                    <div className="lc-brand">
+                      <img src="/wordmark.png" alt="Gutguard" />
+                      <div className="lc-lifestyle">Lifestyle</div>
                     </div>
-                    <span className="lc-qr"><QRSvg seed="0240" size={36} /></span>
+                    <div className="lc-name">{holder.name}</div>
+                    <div className="lc-state on">GUEST · PASS RESERVED</div>
+                    <div className="lc-no">{holder.cardNo}</div>
+                    <div className="lc-since">Issued today</div>
+                    <div className="lc-row">
+                      <span className="lc-pad" aria-hidden="true" />
+                      <div className="lc-pts">
+                        <div className="lc-num">{landing.giftPoints}</div>
+                        <div className="lc-lbl">E-POINTS</div>
+                      </div>
+                      <span className="lc-qr"><QRSvg seed={holder.cardNo} size={36} /></span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <button className="lc" type="button" onClick={openClaim} aria-label="Claim your Ginhawa Pass">
+                  <img src="/watermark.png" alt="" aria-hidden="true" className="lc-mark" />
+                  <div className="lc-body">
+                    <span className="lc-chev" aria-hidden="true">▲</span>
+                    <div className="lc-brand">
+                      <img src="/wordmark.png" alt="Gutguard" />
+                      <div className="lc-lifestyle">Lifestyle</div>
+                    </div>
+                    <span className="lc-claim">
+                      Your name
+                      <span className="lc-tapme">Tap to claim</span>
+                    </span>
+                    <div className="lc-state">NOT YET ACTIVE</div>
+                    <div className="lc-no">0240 •••• •••• ••••</div>
+                    <div className="lc-since">Issued on the day</div>
+                    <div className="lc-row">
+                      <span className="lc-pad" aria-hidden="true" />
+                      <div className="lc-pts">
+                        <div className="lc-num">—</div>
+                        <div className="lc-lbl">E-POINTS</div>
+                      </div>
+                      <span className="lc-qr"><QRSvg seed="0240" size={36} /></span>
+                    </div>
+                  </div>
+                </button>
+              )}
+              {holder ? (
+                <div className="qrcard">
+                  <div className="qr-left">
+                    <div className="qr-eyebrow">IPAKITA ITO SA PINTUAN</div>
+                    <b>Show this at the door</b>
+                    <em>{holder.cardNo}</em>
+                    <button className="gg-button gg-button--secondary" type="button" onClick={downloadQR}>Download QR</button>
+                  </div>
+                  <div className="qr-right"><QRSvg seed={holder.cardNo} size={112} /></div>
+                </div>
+              ) : null}
             </div>
             <div>
               <div className="gift-notes">
@@ -280,13 +368,19 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
                   <span className="dot" />
                   <div>
                     <b>Yours the moment you check in</b>
-                    <em>The card says NOT YET ACTIVE until you are in the room.</em>
+                    <em>{holder ? "Your card says PASS RESERVED until the scan at the door." : "The card says NOT YET ACTIVE until you are in the room."}</em>
                   </div>
                 </div>
               </div>
               <p className="gift-fine">
                 Points are redeemed for product, not cash. For attending — not in exchange for the consultation.
               </p>
+              {holder ? (
+                <p className="shop-note">
+                  After check-in, redeem at the{" "}
+                  <a href={shop}>GutGuard shop</a>.
+                </p>
+              ) : null}
             </div>
           </div>
         </section>
@@ -345,6 +439,45 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
           </div>
         </footer>
       </main>
+
+      {claim && !sent ? (
+        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="claim-title" onClick={() => setClaim(false)}>
+          <div className="gg-dialog" ref={dialogRef} onClick={(e) => e.stopPropagation()}>
+            <div className="gg-dialog-header">
+              <div>
+                <div className="gg-dialog-kicker">Your Ginhawa Pass</div>
+                <h3 id="claim-title">Put your name on it</h3>
+              </div>
+              <button type="button" className="gg-icon-btn gg-icon-btn--ghost" aria-label="Close" onClick={() => setClaim(false)}>
+                <IconX />
+              </button>
+            </div>
+            <div className="gg-dialog-body">
+              <p className="fine" style={{ textAlign: "left", marginTop: 0 }}>
+                We will hold {landing.giftPoints} E-Points on your card until the event. Yours the moment you check in.
+              </p>
+              <label className="gg-field">
+                <span className="gg-field__label">Your name</span>
+                <input className="gg-field__control" value={name} onChange={(e) => setName(e.target.value)} placeholder="Juan dela Cruz" autoComplete="name" />
+              </label>
+              <label className="gg-field">
+                <span className="gg-field__label">Mobile number</span>
+                <input className="gg-field__control" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="09XX XXX XXXX" autoComplete="tel" inputMode="numeric" type="tel" />
+              </label>
+            </div>
+            <div className="gg-dialog-footer">
+              <button className="gg-button gg-button--ghost" type="button" onClick={() => setClaim(false)}>Cancel</button>
+              <button
+                className={"gg-button " + (valid ? "gg-button--primary" : "gg-button--secondary")}
+                type="button"
+                onClick={() => { if (valid) issue(name, mobile); }}
+              >
+                Claim my card
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {who ? (
         <div className="modal" role="dialog" aria-modal="true" aria-labelledby="cred-title" onClick={() => setWho(null)}>
