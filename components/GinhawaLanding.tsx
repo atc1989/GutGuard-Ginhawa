@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/TopBar";
 import { shopEntryUrl } from "@/lib/ecosystem";
 import { EVENT, GIFT_PESO, PASS_PTS, TEAM, VIDEO, type Clinician } from "@/lib/event";
@@ -38,6 +38,14 @@ function IconX() {
   );
 }
 
+function IconChevron() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+
 function QRSvg({ seed, size }: { seed: string; size: number }) {
   const n = 21;
   const cells = qrCells(seed, n);
@@ -62,6 +70,8 @@ export function GinhawaLanding() {
   const [holder, setHolder] = useState<Holder | null>(null);
   const [fire, setFire] = useState(0);
   const [showBar, setShowBar] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const restoreFocus = useRef<HTMLElement | null>(null);
   const shop = shopEntryUrl();
   const left = EVENT.seats - EVENT.taken;
   const sent = Boolean(holder);
@@ -77,15 +87,46 @@ export function GinhawaLanding() {
   useEffect(() => {
     const open = claim || Boolean(who);
     document.body.style.overflow = open ? "hidden" : "";
+    if (!open) return;
+
+    restoreFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const root = dialogRef.current;
+    const focusables = () => {
+      if (!root) return [] as HTMLElement[];
+      return Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+    };
+    const items = focusables();
+    const input = items.find((el) => el.tagName === "INPUT");
+    (input ?? items[0])?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      setClaim(false);
-      setWho(null);
+      if (e.key === "Escape") {
+        setClaim(false);
+        setWho(null);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const items = focusables();
+      if (!items.length) return;
+      const start = items[0];
+      const end = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === start) {
+        e.preventDefault();
+        end.focus();
+      } else if (!e.shiftKey && document.activeElement === end) {
+        e.preventDefault();
+        start.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKey);
+      restoreFocus.current?.focus();
     };
   }, [claim, who]);
 
@@ -138,6 +179,10 @@ export function GinhawaLanding() {
               <span>{EVENT.time}</span>
             </div>
             <p className="hero-what">Consultation, blood pressure, and a proper talk about your health.</p>
+            <div className="hero-gift">
+              <span className="gg-badge gg-badge--gold">{PASS_PTS} E-Points, free</span>
+              <em>worth ₱{GIFT_PESO} in product</em>
+            </div>
             {sent ? (
               <div className="hero-booked">
                 <span className="hb-tick">✓</span>
@@ -151,10 +196,6 @@ export function GinhawaLanding() {
                 Book my seat
               </button>
             )}
-            <div className="hero-gift">
-              <span className="gg-badge gg-badge--gold">{PASS_PTS} E-Points, free</span>
-              <em>worth ₱{GIFT_PESO} in product</em>
-            </div>
             <p className="hero-note">{sent ? "See you on Saturday." : `Free · ${left} of ${EVENT.seats} seats left`}</p>
           </div>
           <div className="docs">
@@ -165,7 +206,7 @@ export function GinhawaLanding() {
                   <b>{p.name}, {p.suffix}</b>
                   <em>{p.role}</em>
                 </span>
-                <span className="doc-more">Credentials</span>
+                <span className="doc-more" aria-hidden="true"><IconChevron /></span>
               </button>
             ))}
           </div>
@@ -404,7 +445,7 @@ export function GinhawaLanding() {
 
       {claim && !sent ? (
         <div className="modal" role="dialog" aria-modal="true" aria-labelledby="claim-title" onClick={() => setClaim(false)}>
-          <div className="gg-dialog" onClick={(e) => e.stopPropagation()}>
+          <div className="gg-dialog" ref={dialogRef} onClick={(e) => e.stopPropagation()}>
             <div className="gg-dialog-header">
               <div>
                 <div className="gg-dialog-kicker">Your Ginhawa Pass</div>
@@ -443,11 +484,11 @@ export function GinhawaLanding() {
 
       {who ? (
         <div className="modal" role="dialog" aria-modal="true" aria-labelledby="cred-title" onClick={() => setWho(null)}>
-          <div className="gg-dialog" onClick={(e) => e.stopPropagation()}>
+          <div className="gg-dialog" ref={dialogRef} onClick={(e) => e.stopPropagation()}>
             <div className="gg-dialog-header">
               <div className="cred-head">
                 <span className="cred-photo">{who.initials}</span>
-                <div>
+                <div className="cred-id">
                   <h3 id="cred-title">{who.name}, {who.suffix}</h3>
                   <em>{who.role}</em>
                 </div>
@@ -458,19 +499,18 @@ export function GinhawaLanding() {
             </div>
             <div className="gg-dialog-body">
               <ul className="creds">{who.creds.map((c) => <li key={c}>{c}</li>)}</ul>
-              <div className="licence"><span>Licence</span><b>{who.licence}</b></div>
-              <p>{who.line}</p>
+              <dl className="licence">
+                <dt>Licence</dt>
+                <dd>{who.licence}</dd>
+              </dl>
+              <p className="cred-line">{who.line}</p>
             </div>
             <div className="gg-dialog-footer">
-              {sent ? (
-                <button className="gg-button gg-button--ghost" type="button" onClick={() => setWho(null)}>Close</button>
-              ) : (
-                <>
-                  <button className="gg-button gg-button--ghost" type="button" onClick={() => setWho(null)}>Cancel</button>
-                  <button className="gg-button gg-button--primary" type="button" onClick={() => { setWho(null); openClaim(); }}>
-                    Book my seat
-                  </button>
-                </>
+              <button className="gg-button gg-button--ghost" type="button" onClick={() => setWho(null)}>Close</button>
+              {sent ? null : (
+                <button className="gg-button gg-button--primary" type="button" onClick={() => { setWho(null); openClaim(); }}>
+                  Book my seat
+                </button>
               )}
             </div>
           </div>
