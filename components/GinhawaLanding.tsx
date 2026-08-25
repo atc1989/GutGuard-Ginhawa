@@ -1,17 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/TopBar";
 import { shopEntryUrl } from "@/lib/ecosystem";
-import { EVENT, GIFT_PESO, PASS_PTS, TEAM, VIDEO, type Clinician } from "@/lib/event";
-
-type Holder = { name: string; mobile: string; cardNo: string };
-
-function cardNo() {
-  let n = "0240";
-  for (let i = 0; i < 3; i++) n += " " + String(1000 + Math.floor(Math.random() * 9000));
-  return n;
-}
+import type { Clinician, GinhawaLanding } from "@/lib/event";
+import { MarkdownBody } from "@/lib/markdown";
+import { resolveVideo } from "@/lib/video";
 
 function qrCells(seed: string, n: number) {
   let x = 4211;
@@ -62,32 +56,40 @@ function QRSvg({ seed, size }: { seed: string; size: number }) {
   );
 }
 
-export function GinhawaLanding() {
-  const [name, setName] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [claim, setClaim] = useState(false);
+function TitleLines({ title }: { title: string }) {
+  const lines = title.split("\n");
+  return (
+    <h1>
+      {lines.map((line, i) => (
+        <Fragment key={i}>
+          {i > 0 ? <br /> : null}
+          {line}
+        </Fragment>
+      ))}
+    </h1>
+  );
+}
+
+function clinicianLabel(p: Clinician) {
+  return p.suffix ? `${p.name}, ${p.suffix}` : p.name;
+}
+
+export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
   const [who, setWho] = useState<Clinician | null>(null);
-  const [holder, setHolder] = useState<Holder | null>(null);
-  const [fire, setFire] = useState(0);
-  const [showBar, setShowBar] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
   const shop = shopEntryUrl();
-  const left = EVENT.seats - EVENT.taken;
-  const sent = Boolean(holder);
-  const valid = name.trim().length > 1 && mobile.replace(/\D/g, "").length >= 10;
+  const seats = landing.capacity;
+  const taken = landing.seatsTaken;
+  const left = seats == null ? null : Math.max(seats - taken, 0);
+  const video = resolveVideo(landing.videoUrl);
+  const showVenue = Boolean(landing.venueName || landing.venueAddress || landing.mapUrl);
+  const showAsk = Boolean(landing.askTitle || landing.askBody || landing.askHit);
+  const showGut = Boolean(landing.gutTitle || landing.gutBody || landing.gutClose);
 
   useEffect(() => {
-    const onScroll = () => setShowBar(window.scrollY > 380 && !sent);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [sent]);
-
-  useEffect(() => {
-    const open = claim || Boolean(who);
-    document.body.style.overflow = open ? "hidden" : "";
-    if (!open) return;
+    document.body.style.overflow = who ? "hidden" : "";
+    if (!who) return;
 
     restoreFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const root = dialogRef.current;
@@ -100,20 +102,18 @@ export function GinhawaLanding() {
       );
     };
     const items = focusables();
-    const input = items.find((el) => el.tagName === "INPUT");
-    (input ?? items[0])?.focus();
+    items[0]?.focus();
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setClaim(false);
         setWho(null);
         return;
       }
       if (e.key !== "Tab") return;
-      const items = focusables();
-      if (!items.length) return;
-      const start = items[0];
-      const end = items[items.length - 1];
+      const trap = focusables();
+      if (!trap.length) return;
+      const start = trap[0];
+      const end = trap[trap.length - 1];
       if (e.shiftKey && document.activeElement === start) {
         e.preventDefault();
         end.focus();
@@ -128,88 +128,44 @@ export function GinhawaLanding() {
       window.removeEventListener("keydown", onKey);
       restoreFocus.current?.focus();
     };
-  }, [claim, who]);
-
-  const issue = (n: string, m: string) => {
-    setHolder({ name: n.trim(), mobile: m.trim(), cardNo: cardNo() });
-    setName(n.trim());
-    setMobile(m.trim());
-    setClaim(false);
-    setFire(Date.now());
-  };
-
-  const openClaim = () => {
-    if (sent) return;
-    setClaim(true);
-  };
-
-  const downloadQR = () => {
-    if (!holder) return;
-    const seed = holder.cardNo;
-    const N = 21, px = 12, pad = 4, size = (N + pad * 2) * px;
-    const cv = document.createElement("canvas");
-    cv.width = cv.height = size;
-    const g = cv.getContext("2d");
-    if (!g) return;
-    g.fillStyle = "#fff";
-    g.fillRect(0, 0, size, size);
-    g.fillStyle = "#0e2249";
-    qrCells(seed, N).forEach((row, y) =>
-      row.forEach((on, x) => {
-        if (on) g.fillRect((x + pad) * px, (y + pad) * px, px, px);
-      }),
-    );
-    const a = document.createElement("a");
-    a.href = cv.toDataURL("image/png");
-    a.download = "gutguard-card-" + seed.replace(/\s/g, "") + ".png";
-    a.click();
-  };
+  }, [who]);
 
   return (
     <div id="top">
-      <TopBar onBook={openClaim} booked={sent} />
+      <TopBar />
 
       <header className="hero" id="event">
         <img src="/watermark.png" alt="" aria-hidden="true" className="hero-g" />
         <div className="hero-in hero-grid">
           <div>
-            <h1>Free Medical<br />Check Up</h1>
+            <TitleLines title={landing.title} />
             <div className="when">
-              <b>{EVENT.date}</b>
-              <span>{EVENT.time}</span>
+              <b>{landing.dateLabel}</b>
+              <span>{landing.timeLabel}</span>
             </div>
-            <p className="hero-what">Consultation, blood pressure, and a proper talk about your health.</p>
+            {landing.heroWhat ? <p className="hero-what">{landing.heroWhat}</p> : null}
             <div className="hero-gift">
-              <span className="gg-badge gg-badge--gold">{PASS_PTS} E-Points, free</span>
-              <em>worth ₱{GIFT_PESO} in product</em>
+              <span className="gg-badge gg-badge--gold">{landing.giftPoints} E-Points, free</span>
+              <em>worth ₱{landing.giftPeso} in product</em>
             </div>
-            {sent ? (
-              <div className="hero-booked">
-                <span className="hb-tick">✓</span>
-                <div>
-                  <b>Your seat is booked</b>
-                  <em>{EVENT.date} · {EVENT.time}</em>
-                </div>
-              </div>
-            ) : (
-              <button className="gg-button gg-button--bone" type="button" onClick={openClaim}>
-                Book my seat
-              </button>
-            )}
-            <p className="hero-note">{sent ? "See you on Saturday." : `Free · ${left} of ${EVENT.seats} seats left`}</p>
+            <p className="hero-note">
+              {left == null || seats == null ? "Free" : `Free · ${left} of ${seats} seats left`}
+            </p>
           </div>
-          <div className="docs">
-            {TEAM.map((p) => (
-              <button key={p.id} className="doc" type="button" onClick={() => setWho(p)} aria-label={`See credentials for ${p.name}`}>
-                <span className="ini">{p.initials}</span>
-                <span className="doc-txt">
-                  <b>{p.name}, {p.suffix}</b>
-                  <em>{p.role}</em>
-                </span>
-                <span className="doc-more" aria-hidden="true"><IconChevron /></span>
-              </button>
-            ))}
-          </div>
+          {landing.clinicians.length ? (
+            <div className="docs">
+              {landing.clinicians.map((p) => (
+                <button key={p.id} className="doc" type="button" onClick={() => setWho(p)} aria-label={`See credentials for ${p.name}`}>
+                  <span className="ini">{p.initials}</span>
+                  <span className="doc-txt">
+                    <b>{clinicianLabel(p)}</b>
+                    <em>{p.role}</em>
+                  </span>
+                  <span className="doc-more" aria-hidden="true"><IconChevron /></span>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
       </header>
 
@@ -217,39 +173,44 @@ export function GinhawaLanding() {
         <div className="meet-band">
           <section className="meet">
             <div className="video" role="group" aria-label="Video: meet the doctor and nurse">
-              {VIDEO.src ? (
-                <video controls playsInline preload="metadata" poster={VIDEO.poster ?? undefined} src={VIDEO.src} />
+              {video?.kind === "drive" ? (
+                <iframe
+                  src={video.src}
+                  title={landing.videoCaption || "Event video"}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              ) : video?.kind === "file" ? (
+                <video controls playsInline preload="metadata" src={video.src} />
               ) : (
                 <div className="video-ph">
                   <span className="play">▶</span>
-                  <span className="vlen">{VIDEO.length}</span>
+                  {landing.videoLength ? <span className="vlen">{landing.videoLength}</span> : null}
                 </div>
               )}
             </div>
-            <p className="vcap">{VIDEO.caption}</p>
+            {landing.videoCaption ? <p className="vcap">{landing.videoCaption}</p> : null}
           </section>
           <div className="ask-gut">
-            <section className="ask">
-              <h2>When was the last time you saw a doctor?</h2>
-              <p>
-                Lifestyle diseases are rising — from how we eat, how we sleep, how hard we work.
-                But a check up costs money, and that stops many from going.
-              </p>
-              <p className="ask-hit">So we are giving it free.</p>
-            </section>
-            <section className="gut">
-              <div className="gut-mark" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-              </div>
-              <h3>Why the gut?</h3>
-              <p>
-                Much of what the body does begins there — digestion, and more besides.
-                Which is why your lifestyle shows up in how you feel.
-              </p>
-              <p className="gut-close">That is a conversation to have with a doctor, not a leaflet.</p>
-            </section>
+            {showAsk ? (
+              <section className="ask">
+                {landing.askTitle ? <h2>{landing.askTitle}</h2> : null}
+                {landing.askBody ? <p>{landing.askBody}</p> : null}
+                {landing.askHit ? <p className="ask-hit">{landing.askHit}</p> : null}
+              </section>
+            ) : null}
+            {showGut ? (
+              <section className="gut">
+                <div className="gut-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>
+                </div>
+                {landing.gutTitle ? <h3>{landing.gutTitle}</h3> : null}
+                {landing.gutBody ? <p>{landing.gutBody}</p> : null}
+                {landing.gutClose ? <p className="gut-close">{landing.gutClose}</p> : null}
+              </section>
+            ) : null}
           </div>
         </div>
 
@@ -259,7 +220,7 @@ export function GinhawaLanding() {
             {[
               ["You sit down", "The doctor and the nurse will listen. No queue behind you."],
               ["They tell you straight", "Whether it is nothing, or whether it should be checked properly now."],
-              ["You go home", `With your Lifestyle Card and ${PASS_PTS} points on it — worth ₱${GIFT_PESO} of Gutguard.`],
+              ["You go home", `With your Lifestyle Card and ${landing.giftPoints} points on it — worth ₱${landing.giftPeso} of Gutguard.`],
             ].map(([t, d], i) => (
               <div className={"step" + (i === 2 ? " last" : "")} key={t}>
                 <span className="num">{i + 1}</span>
@@ -289,140 +250,76 @@ export function GinhawaLanding() {
                     <img src="/wordmark.png" alt="Gutguard" />
                     <div className="lc-lifestyle">Lifestyle</div>
                   </div>
-                  {holder ? (
-                    <>
-                      <div className="lc-name">{holder.name}</div>
-                      <div className="lc-state on">GUEST · PASS RESERVED</div>
-                      <div className="lc-no">{holder.cardNo}</div>
-                      <div className="lc-since">Issued today</div>
-                    </>
-                  ) : (
-                    <>
-                      <button className="lc-claim" type="button" onClick={openClaim}>
-                        Your name
-                        <span className="lc-tapme">Tap to claim</span>
-                      </button>
-                      <div className="lc-state">NOT YET ACTIVE</div>
-                      <div className="lc-no">0240 •••• •••• ••••</div>
-                      <div className="lc-since">Issued on the day</div>
-                    </>
-                  )}
+                  <div className="lc-claim">
+                    Your name
+                  </div>
+                  <div className="lc-state">NOT YET ACTIVE</div>
+                  <div className="lc-no">0240 •••• •••• ••••</div>
+                  <div className="lc-since">Issued on the day</div>
                   <div className="lc-row">
                     <span className="lc-pad" aria-hidden="true" />
                     <div className="lc-pts">
-                      <div className="lc-num">{holder ? PASS_PTS : "—"}</div>
+                      <div className="lc-num">{landing.giftPoints}</div>
                       <div className="lc-lbl">E-POINTS</div>
                     </div>
-                    <span className="lc-qr"><QRSvg seed={holder?.cardNo ?? "0240"} size={36} /></span>
+                    <span className="lc-qr"><QRSvg seed="0240" size={36} /></span>
                   </div>
                 </div>
               </div>
-              {holder ? (
-                <div className="qrcard">
-                  <div className="qr-left">
-                    <div className="qr-eyebrow">IPAKITA ITO SA PINTUAN</div>
-                    <b>Show this at the door</b>
-                    <em>{holder.cardNo}</em>
-                    <button className="gg-button gg-button--secondary" type="button" onClick={downloadQR}>Download QR</button>
-                  </div>
-                  <div className="qr-right"><QRSvg seed={holder.cardNo} size={112} /></div>
-                </div>
-              ) : null}
             </div>
             <div>
               <div className="gift-notes">
                 <div className="gn">
                   <span className="dot" />
                   <div>
-                    <b>{PASS_PTS} points, worth ₱{GIFT_PESO} in free product</b>
-                    <em>Your Ginhawa Pass — reserved for guests of the {EVENT.date} talk.</em>
+                    <b>{landing.giftPoints} points, worth ₱{landing.giftPeso} in free product</b>
+                    <em>Your Ginhawa Pass — reserved for guests of the {landing.dateLabel} talk.</em>
                   </div>
                 </div>
                 <div className="gn">
                   <span className="dot" />
                   <div>
                     <b>Yours the moment you check in</b>
-                    <em>{holder ? "Your card says PASS RESERVED until the scan at the door." : "The card says NOT YET ACTIVE until you are in the room."}</em>
+                    <em>The card says NOT YET ACTIVE until you are in the room.</em>
                   </div>
                 </div>
               </div>
               <p className="gift-fine">
                 Points are redeemed for product, not cash. For attending — not in exchange for the consultation.
               </p>
-              {holder ? (
-                <p className="shop-note">
-                  After check-in, redeem at the{" "}
-                  <a href={shop}>GutGuard shop</a>.
-                </p>
-              ) : null}
             </div>
           </div>
         </section>
 
         <div className="close-pair">
-          <section className="book" id="book">
-            {!sent ? (
-              <>
-                <div className="seatline">
-                  <div className="seatbar"><i style={{ width: `${(EVENT.taken / EVENT.seats) * 100}%` }} /></div>
-                  <b>{left} seats left</b>
-                </div>
-                <h3>Book your seat</h3>
-                <label className="gg-field">
-                  <span className="gg-field__label">Your name</span>
-                  <input className="gg-field__control" value={name} onChange={(e) => setName(e.target.value)} placeholder="Juan dela Cruz" autoComplete="name" />
-                </label>
-                <label className="gg-field">
-                  <span className="gg-field__label">Mobile number</span>
-                  <input className="gg-field__control" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="09XX XXX XXXX" autoComplete="tel" inputMode="numeric" type="tel" />
-                </label>
-                <button
-                  className={"gg-button gg-button--wide " + (valid ? "gg-button--primary" : "gg-button--secondary")}
-                  type="button"
-                  onClick={() => { if (valid) issue(name, mobile); }}
-                >
-                  Book my seat
-                </button>
-                <p className="fine">{valid ? "Free. No payment at any point." : "Enter your name and mobile to book."}</p>
-                <p className="fine">We will text you the details. Nobody will ring you to sell you anything.</p>
-              </>
-            ) : (
-              <div className="done">
-                <span className="tick">✓</span>
-                <h3>Your card is yours</h3>
-                <p>{EVENT.date}, {EVENT.time}<br />{EVENT.venue}</p>
-                <p className="fine">We will text {mobile} with the details. Show your card at the door, or just give your name.</p>
-                <a className="gg-button gg-button--ghost gg-button--wide" href={EVENT.maps} target="_blank" rel="noreferrer">Get directions</a>
-              </div>
-            )}
-          </section>
-
-          <div className="close-side">
+          {showVenue ? (
             <section className="where">
               <h3 className="sec"><span className="sec-num">03</span> Where</h3>
               <div className="venue">
-                <b>{EVENT.venue}</b>
-                <em>{EVENT.address}</em>
-                <a className="gg-button gg-button--text" href={EVENT.maps} target="_blank" rel="noreferrer">Open in Google Maps</a>
+                {landing.venueName ? <b>{landing.venueName}</b> : null}
+                {landing.venueAddress ? <em>{landing.venueAddress}</em> : null}
+                {landing.mapUrl ? (
+                  <a className="gg-button gg-button--text" href={landing.mapUrl} target="_blank" rel="noreferrer">Open in Google Maps</a>
+                ) : null}
               </div>
             </section>
-            <section className="bring">
-              <h3 className="sec">Bring with you</h3>
-              <ul>
-                <li>Your medicines — including herbal ones</li>
-                <li>Any recent lab results</li>
-                <li>Someone with you, if you would rather not come alone</li>
-              </ul>
-            </section>
-          </div>
+          ) : null}
+          <section className="bring">
+            <h3 className="sec">Bring with you</h3>
+            <ul>
+              <li>Your medicines — including herbal ones</li>
+              <li>Any recent lab results</li>
+              <li>Someone with you, if you would rather not come alone</li>
+            </ul>
+          </section>
         </div>
 
         <section className="why">
           <h3 className="sec"><span className="sec-num">04</span> Why we do this</h3>
           <p>
             We make a gut health product, and we would rather people saw a doctor first.
-            Everyone who comes goes home with a <b>Lifestyle Card</b> carrying {PASS_PTS} points,
-            worth ₱{GIFT_PESO} of Gutguard. For attending, not in exchange for the consultation.
+            Everyone who comes goes home with a <b>Lifestyle Card</b> carrying {landing.giftPoints} points,
+            worth ₱{landing.giftPeso} of Gutguard. For attending, not in exchange for the consultation.
           </p>
           <p className="why-hit">Nothing is sold here.</p>
         </section>
@@ -431,7 +328,13 @@ export function GinhawaLanding() {
           <div className="foot-grid">
             <div>
               <p>For emergencies, please go to the hospital.</p>
-              <p className="legal">{TEAM.map((p) => `${p.name}, ${p.suffix} · ${p.licence}`).join(" · ")} · Gutguard Philippines Inc.</p>
+              <p className="legal">
+                {landing.clinicians
+                  .map((p) => `${clinicianLabel(p)}${p.licence ? ` · ${p.licence}` : ""}`)
+                  .join(" · ")}
+                {landing.clinicians.length ? " · " : ""}
+                Gutguard Philippines Inc.
+              </p>
             </div>
             <nav className="foot-nav" aria-label="GutGuard">
               <a href="#event">Event</a>
@@ -443,45 +346,6 @@ export function GinhawaLanding() {
         </footer>
       </main>
 
-      {claim && !sent ? (
-        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="claim-title" onClick={() => setClaim(false)}>
-          <div className="gg-dialog" ref={dialogRef} onClick={(e) => e.stopPropagation()}>
-            <div className="gg-dialog-header">
-              <div>
-                <div className="gg-dialog-kicker">Your Ginhawa Pass</div>
-                <h3 id="claim-title">Put your name on it</h3>
-              </div>
-              <button type="button" className="gg-icon-btn gg-icon-btn--ghost" aria-label="Close" onClick={() => setClaim(false)}>
-                <IconX />
-              </button>
-            </div>
-            <div className="gg-dialog-body">
-              <p className="fine" style={{ textAlign: "left", marginTop: 0 }}>
-                We will hold {PASS_PTS} E-Points on your card until Saturday. Yours the moment you check in.
-              </p>
-              <label className="gg-field">
-                <span className="gg-field__label">Your name</span>
-                <input className="gg-field__control" value={name} onChange={(e) => setName(e.target.value)} placeholder="Juan dela Cruz" autoComplete="name" />
-              </label>
-              <label className="gg-field">
-                <span className="gg-field__label">Mobile number</span>
-                <input className="gg-field__control" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="09XX XXX XXXX" autoComplete="tel" inputMode="numeric" type="tel" />
-              </label>
-            </div>
-            <div className="gg-dialog-footer">
-              <button className="gg-button gg-button--ghost" type="button" onClick={() => setClaim(false)}>Cancel</button>
-              <button
-                className={"gg-button " + (valid ? "gg-button--primary" : "gg-button--secondary")}
-                type="button"
-                onClick={() => { if (valid) issue(name, mobile); }}
-              >
-                Claim my card
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
       {who ? (
         <div className="modal" role="dialog" aria-modal="true" aria-labelledby="cred-title" onClick={() => setWho(null)}>
           <div className="gg-dialog" ref={dialogRef} onClick={(e) => e.stopPropagation()}>
@@ -489,7 +353,7 @@ export function GinhawaLanding() {
               <div className="cred-head">
                 <span className="cred-photo">{who.initials}</span>
                 <div className="cred-id">
-                  <h3 id="cred-title">{who.name}, {who.suffix}</h3>
+                  <h3 id="cred-title">{clinicianLabel(who)}</h3>
                   <em>{who.role}</em>
                 </div>
               </div>
@@ -498,38 +362,17 @@ export function GinhawaLanding() {
               </button>
             </div>
             <div className="gg-dialog-body">
-              <ul className="creds">{who.creds.map((c) => <li key={c}>{c}</li>)}</ul>
-              <dl className="licence">
-                <dt>Licence</dt>
-                <dd>{who.licence}</dd>
-              </dl>
-              <p className="cred-line">{who.line}</p>
+              <MarkdownBody md={who.credentialsMd} />
+              {who.licence ? (
+                <dl className="licence">
+                  <dt>Licence</dt>
+                  <dd>{who.licence}</dd>
+                </dl>
+              ) : null}
             </div>
             <div className="gg-dialog-footer">
               <button className="gg-button gg-button--ghost" type="button" onClick={() => setWho(null)}>Close</button>
-              {sent ? null : (
-                <button className="gg-button gg-button--primary" type="button" onClick={() => { setWho(null); openClaim(); }}>
-                  Book my seat
-                </button>
-              )}
             </div>
-          </div>
-        </div>
-      ) : null}
-
-      {fire ? <Confetti fire={fire} /> : null}
-
-      {!sent ? (
-        <div className={"stick" + (showBar ? " on" : "") + (claim || who ? " hide" : "")}>
-          <div className="stick-in">
-            <div className="grow" style={{ flex: 1, minWidth: 0 }}>
-              <b>{EVENT.date.replace("Saturday, ", "Sat ")} · {EVENT.time}</b>
-              <div className="stick-bar" role="progressbar" aria-valuenow={EVENT.taken} aria-valuemin={0} aria-valuemax={EVENT.seats} aria-label={`${left} of ${EVENT.seats} seats left`}>
-                <i style={{ width: `${(EVENT.taken / EVENT.seats) * 100}%` }} />
-              </div>
-              <em>{left} of {EVENT.seats} seats left</em>
-            </div>
-            <button className="gg-button gg-button--primary" type="button" onClick={openClaim}>Book my seat</button>
           </div>
         </div>
       ) : null}
@@ -537,30 +380,22 @@ export function GinhawaLanding() {
   );
 }
 
-function Confetti({ fire }: { fire: number }) {
-  const [bits, setBits] = useState<{ id: number; tx: string; ty: string; rot: string; color: string; left: string }[]>([]);
-  useEffect(() => {
-    if (!fire || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const colors = ["#b08d5b", "#0608a9", "#f4f1ea", "#0f0f18"];
-    setBits(
-      Array.from({ length: 28 }, (_, i) => ({
-        id: i,
-        left: `${10 + Math.random() * 80}%`,
-        tx: `${(Math.random() - 0.5) * 240}px`,
-        ty: `${180 + Math.random() * 280}px`,
-        rot: `${Math.random() * 420}deg`,
-        color: colors[i % colors.length],
-      })),
-    );
-    const t = window.setTimeout(() => setBits([]), 1200);
-    return () => window.clearTimeout(t);
-  }, [fire]);
-  if (!bits.length) return null;
+export function GinhawaEmpty() {
+  const shop = shopEntryUrl();
   return (
-    <div className="cf-wrap" aria-hidden="true">
-      {bits.map((b) => (
-        <i key={b.id} className="cf" style={{ left: b.left, width: 8, height: 10, background: b.color, ["--tx" as string]: b.tx, ["--ty" as string]: b.ty, ["--rot" as string]: b.rot }} />
-      ))}
+    <div id="top">
+      <TopBar />
+      <header className="hero" id="event">
+        <img src="/watermark.png" alt="" aria-hidden="true" className="hero-g" />
+        <div className="hero-in">
+          <h1>Ginhawa</h1>
+          <p className="hero-what">No event is scheduled right now.</p>
+          <p className="hero-note">Check back soon, or visit the shop in the meantime.</p>
+          <a className="gg-button gg-button--bone" href={shop} style={{ marginTop: 22, display: "inline-flex" }}>
+            GutGuard shop
+          </a>
+        </div>
+      </header>
     </div>
   );
 }
