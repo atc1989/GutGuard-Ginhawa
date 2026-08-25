@@ -144,6 +144,11 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
               <span>{landing.timeLabel}</span>
             </div>
             {landing.heroWhat ? <p className="hero-what">{landing.heroWhat}</p> : null}
+            {landing.bookUrl ? (
+              <a className="gg-button gg-button--bone" href={landing.bookUrl} rel="noopener noreferrer">
+                Book my seat
+              </a>
+            ) : null}
             <div className="hero-gift">
               <span className="gg-badge gg-badge--gold">{landing.giftPoints} E-Points, free</span>
               <em>worth ₱{landing.giftPeso} in product</em>
