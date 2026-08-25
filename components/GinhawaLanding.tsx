@@ -228,11 +228,11 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
 
         <section className="gift">
           <div className="gift-layout">
-            <div>
-              <div className="gift-lead">
-                <div className="sec"><span className="sec-num">02</span> A gift for our guests · limited</div>
-                <h3>You go home with this.</h3>
-              </div>
+            <div className="gift-lead">
+              <div className="sec"><span className="sec-num">02</span> A gift for our guests · limited</div>
+              <h3>You go home with this.</h3>
+            </div>
+            <div className="lc-stage">
               {holder ? (
                 <div className="lc">
                   <img src="/watermark.png" alt="" aria-hidden="true" className="lc-mark" />
@@ -288,7 +288,7 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
                 <div className="gn">
                   <span className="dot" />
                   <div>
-                    <b>{landing.giftPoints} points, worth ₱{landing.giftPeso} in free product</b>
+                    <b>Worth ₱{landing.giftPeso} in free product.</b>
                     <em>Your Ginhawa Pass — reserved for guests of the {landing.dateLabel} talk.</em>
                   </div>
                 </div>
