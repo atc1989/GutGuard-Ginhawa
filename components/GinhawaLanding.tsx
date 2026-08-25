@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/TopBar";
 import { shopEntryUrl } from "@/lib/ecosystem";
 import type { Clinician, GinhawaLanding } from "@/lib/event";
@@ -28,6 +28,14 @@ function IconX() {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+function IconChevron() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m9 6 6 6-6 6" />
     </svg>
   );
 }
@@ -68,6 +76,8 @@ function clinicianLabel(p: Clinician) {
 
 export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
   const [who, setWho] = useState<Clinician | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const restoreFocus = useRef<HTMLElement | null>(null);
   const shop = shopEntryUrl();
   const seats = landing.capacity;
   const taken = landing.seatsTaken;
@@ -79,13 +89,44 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
 
   useEffect(() => {
     document.body.style.overflow = who ? "hidden" : "";
+    if (!who) return;
+
+    restoreFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const root = dialogRef.current;
+    const focusables = () => {
+      if (!root) return [] as HTMLElement[];
+      return Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+    };
+    const items = focusables();
+    items[0]?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setWho(null);
+      if (e.key === "Escape") {
+        setWho(null);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const trap = focusables();
+      if (!trap.length) return;
+      const start = trap[0];
+      const end = trap[trap.length - 1];
+      if (e.shiftKey && document.activeElement === start) {
+        e.preventDefault();
+        end.focus();
+      } else if (!e.shiftKey && document.activeElement === end) {
+        e.preventDefault();
+        start.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKey);
+      restoreFocus.current?.focus();
     };
   }, [who]);
 
@@ -120,7 +161,7 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
                     <b>{clinicianLabel(p)}</b>
                     <em>{p.role}</em>
                   </span>
-                  <span className="doc-more">Credentials</span>
+                  <span className="doc-more" aria-hidden="true"><IconChevron /></span>
                 </button>
               ))}
             </div>
@@ -307,11 +348,11 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
 
       {who ? (
         <div className="modal" role="dialog" aria-modal="true" aria-labelledby="cred-title" onClick={() => setWho(null)}>
-          <div className="gg-dialog" onClick={(e) => e.stopPropagation()}>
+          <div className="gg-dialog" ref={dialogRef} onClick={(e) => e.stopPropagation()}>
             <div className="gg-dialog-header">
               <div className="cred-head">
                 <span className="cred-photo">{who.initials}</span>
-                <div>
+                <div className="cred-id">
                   <h3 id="cred-title">{clinicianLabel(who)}</h3>
                   <em>{who.role}</em>
                 </div>
@@ -323,7 +364,10 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
             <div className="gg-dialog-body">
               <MarkdownBody md={who.credentialsMd} />
               {who.licence ? (
-                <div className="licence"><span>Licence</span><b>{who.licence}</b></div>
+                <dl className="licence">
+                  <dt>Licence</dt>
+                  <dd>{who.licence}</dd>
+                </dl>
               ) : null}
             </div>
             <div className="gg-dialog-footer">
