@@ -294,7 +294,10 @@ a { color: var(--gg-blue); }
   padding: 28px 20px 36px;
 }
 .hero-g {
-  position: absolute; top: 8%; left: -12%; right: auto;
+  position: absolute;
+  top: 8%;
+  left: max(0px, calc(50% - var(--gg-content) / 2));
+  right: auto;
   transform: none;
   height: 92%; width: auto; max-width: none;
   opacity: 0.12; pointer-events: none;
