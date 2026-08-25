@@ -579,7 +579,7 @@ button.lc { text-align: inherit; }
   color: rgba(223,215,213,.55); margin-top: 4px; text-align: center;
 }
 .lc-state.on { color: #f5b716; }
-.lc-no { text-align: center; font-size: 12.5px; color: rgba(223,215,213,.9); letter-spacing: 0.1em; margin-top: 6px; }
+.lc-no { display: block; text-align: center; font-size: 12.5px; color: rgba(223,215,213,.9); letter-spacing: 0.04em; margin-top: 6px; }
 .lc-since { text-align: center; font-size: 8.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(223,215,213,.66); margin-top: 5px; }
 .lc-row { display: flex; align-items: flex-end; gap: 10px; margin-top: 10px; }
 .lc-pad { width: 46px; flex-shrink: 0; }

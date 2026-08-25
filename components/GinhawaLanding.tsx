@@ -7,22 +7,6 @@ import type { Clinician, GinhawaLanding } from "@/lib/event";
 import { MarkdownBody } from "@/lib/markdown";
 import { resolveVideo } from "@/lib/video";
 
-function qrCells(seed: string, n: number) {
-  let x = 4211;
-  for (const ch of String(seed)) x = (x * 31 + ch.charCodeAt(0)) & 0x7fffffff;
-  const rnd = () => {
-    x = (x * 1103515245 + 12345) & 0x7fffffff;
-    return x / 0x7fffffff;
-  };
-  const grid: boolean[][] = [];
-  for (let y = 0; y < n; y++) {
-    const row: boolean[] = [];
-    for (let cx = 0; cx < n; cx++) row.push(rnd() > 0.55);
-    grid.push(row);
-  }
-  return grid;
-}
-
 function IconX() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -36,22 +20,6 @@ function IconChevron() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="m9 6 6 6-6 6" />
-    </svg>
-  );
-}
-
-function QRSvg({ seed, size }: { seed: string; size: number }) {
-  const n = 21;
-  const cells = qrCells(seed, n);
-  const cell = size / n;
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-      <rect width={size} height={size} fill="#fff" />
-      {cells.flatMap((row, y) =>
-        row.map((on, x) =>
-          on ? <rect key={`${x}-${y}`} x={x * cell} y={y * cell} width={cell} height={cell} fill="#0e2249" /> : null,
-        ),
-      )}
     </svg>
   );
 }
@@ -74,13 +42,7 @@ function clinicianLabel(p: Clinician) {
   return p.suffix ? `${p.name}, ${p.suffix}` : p.name;
 }
 
-type Holder = { name: string; mobile: string; cardNo: string };
-
-function cardNo() {
-  let n = "0240";
-  for (let i = 0; i < 3; i++) n += " " + String(1000 + Math.floor(Math.random() * 9000));
-  return n;
-}
+type Holder = { name: string; mobile: string };
 
 export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
   const [who, setWho] = useState<Clinician | null>(null);
@@ -153,32 +115,10 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
   };
 
   const issue = (n: string, m: string) => {
-    setHolder({ name: n.trim(), mobile: m.trim(), cardNo: cardNo() });
+    setHolder({ name: n.trim(), mobile: m.trim() });
     setName(n.trim());
     setMobile(m.trim());
     setClaim(false);
-  };
-
-  const downloadQR = () => {
-    if (!holder) return;
-    const seed = holder.cardNo;
-    const N = 21, px = 12, pad = 4, size = (N + pad * 2) * px;
-    const cv = document.createElement("canvas");
-    cv.width = cv.height = size;
-    const g = cv.getContext("2d");
-    if (!g) return;
-    g.fillStyle = "#fff";
-    g.fillRect(0, 0, size, size);
-    g.fillStyle = "#0e2249";
-    qrCells(seed, N).forEach((row, y) =>
-      row.forEach((on, x) => {
-        if (on) g.fillRect((x + pad) * px, (y + pad) * px, px, px);
-      }),
-    );
-    const a = document.createElement("a");
-    a.href = cv.toDataURL("image/png");
-    a.download = "gutguard-card-" + seed.replace(/\s/g, "") + ".png";
-    a.click();
   };
 
   return (
@@ -304,7 +244,7 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
                     </div>
                     <div className="lc-name">{holder.name}</div>
                     <div className="lc-state on">GUEST · PASS RESERVED</div>
-                    <div className="lc-no">{holder.cardNo}</div>
+                    <div className="lc-no">{holder.mobile}</div>
                     <div className="lc-since">Issued today</div>
                     <div className="lc-row">
                       <span className="lc-pad" aria-hidden="true" />
@@ -312,7 +252,7 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
                         <div className="lc-num">{landing.giftPoints}</div>
                         <div className="lc-lbl">E-POINTS</div>
                       </div>
-                      <span className="lc-qr"><QRSvg seed={holder.cardNo} size={36} /></span>
+                      <span className="lc-pad" aria-hidden="true" />
                     </div>
                   </div>
                 </div>
@@ -330,7 +270,6 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
                       <span className="lc-tapme">Tap to claim</span>
                     </span>
                     <div className="lc-state">NOT YET ACTIVE</div>
-                    <div className="lc-no">0240 •••• •••• ••••</div>
                     <div className="lc-since">Issued on the day</div>
                     <div className="lc-row">
                       <span className="lc-pad" aria-hidden="true" />
@@ -338,22 +277,11 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
                         <div className="lc-num">—</div>
                         <div className="lc-lbl">E-POINTS</div>
                       </div>
-                      <span className="lc-qr"><QRSvg seed="0240" size={36} /></span>
+                      <span className="lc-pad" aria-hidden="true" />
                     </div>
                   </div>
                 </button>
               )}
-              {holder ? (
-                <div className="qrcard">
-                  <div className="qr-left">
-                    <div className="qr-eyebrow">IPAKITA ITO SA PINTUAN</div>
-                    <b>Show this at the door</b>
-                    <em>{holder.cardNo}</em>
-                    <button className="gg-button gg-button--secondary" type="button" onClick={downloadQR}>Download QR</button>
-                  </div>
-                  <div className="qr-right"><QRSvg seed={holder.cardNo} size={112} /></div>
-                </div>
-              ) : null}
             </div>
             <div>
               <div className="gift-notes">
