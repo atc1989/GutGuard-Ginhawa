@@ -3,6 +3,15 @@
 import { useEffect, useState } from "react";
 import { shopEntryUrl } from "@/lib/ecosystem";
 
+function IconX() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
 export function TopBar({ onBook, booked }: { onBook: () => void; booked?: boolean }) {
   const [open, setOpen] = useState(false);
   const shop = shopEntryUrl();
@@ -24,7 +33,7 @@ export function TopBar({ onBook, booked }: { onBook: () => void; booked?: boolea
           <em>Ginhawa</em>
         </a>
         <nav className="topbar-links" aria-label="Primary">
-          <a href="#event">Event</a>
+          <a href="#event" aria-current="page">Event</a>
           <a href={shop}>Shop</a>
           <span className="topbar-soon">Lifestyle · soon</span>
           <span className="topbar-soon">Gentrep · soon</span>
@@ -50,8 +59,8 @@ export function TopBar({ onBook, booked }: { onBook: () => void; booked?: boolea
       {open ? (
         <div className="sheet-nav" role="dialog" aria-modal="true" aria-label="Menu" onClick={() => setOpen(false)}>
           <div className="sheet-nav-panel" id="site-menu" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="gg-button gg-button--ghost" onClick={() => setOpen(false)}>
-              Close
+            <button type="button" className="gg-icon-btn" aria-label="Close" onClick={() => setOpen(false)}>
+              <IconX />
             </button>
             {booked ? null : (
               <button
@@ -65,7 +74,7 @@ export function TopBar({ onBook, booked }: { onBook: () => void; booked?: boolea
                 Book my seat
               </button>
             )}
-            <a href="#event" onClick={() => setOpen(false)}>Event</a>
+            <a href="#event" aria-current="page" onClick={() => setOpen(false)}>Event</a>
             <a href={shop}>Shop</a>
             <span className="topbar-soon">Lifestyle · soon</span>
             <span className="topbar-soon">Gentrep · soon</span>

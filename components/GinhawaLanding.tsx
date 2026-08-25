@@ -29,6 +29,15 @@ function qrCells(seed: string, n: number) {
   return grid;
 }
 
+function IconX() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
 function QRSvg({ seed, size }: { seed: string; size: number }) {
   const n = 21;
   const cells = qrCells(seed, n);
@@ -138,12 +147,12 @@ export function GinhawaLanding() {
                 </div>
               </div>
             ) : (
-              <button className="gg-button gg-button--primary" type="button" onClick={openClaim}>
+              <button className="gg-button gg-button--bone" type="button" onClick={openClaim}>
                 Book my seat
               </button>
             )}
             <div className="hero-gift">
-              <b>{PASS_PTS} E-Points, free</b>
+              <span className="gg-badge gg-badge--gold">{PASS_PTS} E-Points, free</span>
               <em>worth ₱{GIFT_PESO} in product</em>
             </div>
             <p className="hero-note">{sent ? "See you on Saturday." : `Free · ${left} of ${EVENT.seats} seats left`}</p>
@@ -188,7 +197,11 @@ export function GinhawaLanding() {
               <p className="ask-hit">So we are giving it free.</p>
             </section>
             <section className="gut">
-              <div className="gut-mark" aria-hidden="true" />
+              <div className="gut-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </div>
               <h3>Why the gut?</h3>
               <p>
                 Much of what the body does begins there — digestion, and more besides.
@@ -200,7 +213,7 @@ export function GinhawaLanding() {
         </div>
 
         <section className="steps">
-          <h3 className="sec">What happens on the day</h3>
+          <h3 className="sec"><span className="sec-num">01</span> What happens on the day</h3>
           <div className="steps-grid">
             {[
               ["You sit down", "The doctor and the nurse will listen. No queue behind you."],
@@ -214,9 +227,9 @@ export function GinhawaLanding() {
             ))}
           </div>
           <div className="promises">
-            <span>Around 20 minutes</span>
-            <span>No one will hurry you</span>
-            <span>No one will sell you anything</span>
+            <span className="gg-badge gg-badge--paid">Around 20 minutes</span>
+            <span className="gg-badge gg-badge--paid">No one will hurry you</span>
+            <span className="gg-badge gg-badge--paid">No one will sell you anything</span>
           </div>
         </section>
 
@@ -224,7 +237,7 @@ export function GinhawaLanding() {
           <div className="gift-layout">
             <div>
               <div className="gift-lead">
-                <div className="gg-eyebrow">A gift for our guests · limited</div>
+                <div className="sec"><span className="sec-num">02</span> A gift for our guests · limited</div>
                 <h3>You go home with this.</h3>
               </div>
               <div className="lc">
@@ -269,7 +282,7 @@ export function GinhawaLanding() {
                     <div className="qr-eyebrow">IPAKITA ITO SA PINTUAN</div>
                     <b>Show this at the door</b>
                     <em>{holder.cardNo}</em>
-                    <button className="btn-dl" type="button" onClick={downloadQR}>Download QR</button>
+                    <button className="gg-button gg-button--secondary" type="button" onClick={downloadQR}>Download QR</button>
                   </div>
                   <div className="qr-right"><QRSvg seed={holder.cardNo} size={112} /></div>
                 </div>
@@ -305,15 +318,6 @@ export function GinhawaLanding() {
           </div>
         </section>
 
-        <section className="bring">
-          <h3 className="sec">Bring with you</h3>
-          <ul>
-            <li>Your medicines — including herbal ones</li>
-            <li>Any recent lab results</li>
-            <li>Someone with you, if you would rather not come alone</li>
-          </ul>
-        </section>
-
         <div className="close-pair">
           <section className="book" id="book">
             {!sent ? (
@@ -331,10 +335,14 @@ export function GinhawaLanding() {
                   <span className="gg-field__label">Mobile number</span>
                   <input className="gg-field__control" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="09XX XXX XXXX" autoComplete="tel" inputMode="numeric" type="tel" />
                 </label>
-                <button className="gg-button gg-button--primary gg-button--wide" type="button" disabled={!valid} onClick={() => issue(name, mobile)}>
+                <button
+                  className={"gg-button gg-button--wide " + (valid ? "gg-button--primary" : "gg-button--secondary")}
+                  type="button"
+                  onClick={() => { if (valid) issue(name, mobile); }}
+                >
                   Book my seat
                 </button>
-                <p className="fine">Free. No payment at any point.</p>
+                <p className="fine">{valid ? "Free. No payment at any point." : "Enter your name and mobile to book."}</p>
                 <p className="fine">We will text you the details. Nobody will ring you to sell you anything.</p>
               </>
             ) : (
@@ -348,18 +356,28 @@ export function GinhawaLanding() {
             )}
           </section>
 
-          <section className="where">
-            <h3 className="sec">Where</h3>
-            <div className="venue">
-              <b>{EVENT.venue}</b>
-              <em>{EVENT.address}</em>
-              <a className="maplink" href={EVENT.maps} target="_blank" rel="noreferrer">Open in Google Maps →</a>
-            </div>
-          </section>
+          <div className="close-side">
+            <section className="where">
+              <h3 className="sec"><span className="sec-num">03</span> Where</h3>
+              <div className="venue">
+                <b>{EVENT.venue}</b>
+                <em>{EVENT.address}</em>
+                <a className="gg-button gg-button--text" href={EVENT.maps} target="_blank" rel="noreferrer">Open in Google Maps</a>
+              </div>
+            </section>
+            <section className="bring">
+              <h3 className="sec">Bring with you</h3>
+              <ul>
+                <li>Your medicines — including herbal ones</li>
+                <li>Any recent lab results</li>
+                <li>Someone with you, if you would rather not come alone</li>
+              </ul>
+            </section>
+          </div>
         </div>
 
         <section className="why">
-          <h3 className="sec">Why we do this</h3>
+          <h3 className="sec"><span className="sec-num">04</span> Why we do this</h3>
           <p>
             We make a gut health product, and we would rather people saw a doctor first.
             Everyone who comes goes home with a <b>Lifestyle Card</b> carrying {PASS_PTS} points,
@@ -385,52 +403,76 @@ export function GinhawaLanding() {
       </main>
 
       {claim && !sent ? (
-        <div className="modal" role="dialog" aria-modal="true" aria-label="Claim your card" onClick={() => setClaim(false)}>
-          <div className="sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="grab" />
-            <div className="gg-eyebrow">Your Ginhawa Pass</div>
-            <h3 style={{ fontFamily: "var(--gg-serif)", fontSize: 28, fontWeight: 400, margin: "8px 0 12px" }}>Put your name on it</h3>
-            <p className="fine" style={{ textAlign: "left" }}>
-              We will hold {PASS_PTS} E-Points on your card until Saturday. Yours the moment you check in.
-            </p>
-            <label className="gg-field">
-              <span className="gg-field__label">Your name</span>
-              <input className="gg-field__control" value={name} onChange={(e) => setName(e.target.value)} placeholder="Juan dela Cruz" autoComplete="name" />
-            </label>
-            <label className="gg-field">
-              <span className="gg-field__label">Mobile number</span>
-              <input className="gg-field__control" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="09XX XXX XXXX" autoComplete="tel" inputMode="numeric" type="tel" />
-            </label>
-            <button className="gg-button gg-button--primary gg-button--wide" type="button" disabled={!valid} onClick={() => issue(name, mobile)}>
-              Claim my card
-            </button>
-            <p className="fine">Free. Nobody will ring you to sell you anything.</p>
+        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="claim-title" onClick={() => setClaim(false)}>
+          <div className="gg-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="gg-dialog-header">
+              <div>
+                <div className="gg-dialog-kicker">Your Ginhawa Pass</div>
+                <h3 id="claim-title">Put your name on it</h3>
+              </div>
+              <button type="button" className="gg-icon-btn gg-icon-btn--ghost" aria-label="Close" onClick={() => setClaim(false)}>
+                <IconX />
+              </button>
+            </div>
+            <div className="gg-dialog-body">
+              <p className="fine" style={{ textAlign: "left", marginTop: 0 }}>
+                We will hold {PASS_PTS} E-Points on your card until Saturday. Yours the moment you check in.
+              </p>
+              <label className="gg-field">
+                <span className="gg-field__label">Your name</span>
+                <input className="gg-field__control" value={name} onChange={(e) => setName(e.target.value)} placeholder="Juan dela Cruz" autoComplete="name" />
+              </label>
+              <label className="gg-field">
+                <span className="gg-field__label">Mobile number</span>
+                <input className="gg-field__control" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="09XX XXX XXXX" autoComplete="tel" inputMode="numeric" type="tel" />
+              </label>
+            </div>
+            <div className="gg-dialog-footer">
+              <button className="gg-button gg-button--ghost" type="button" onClick={() => setClaim(false)}>Cancel</button>
+              <button
+                className={"gg-button " + (valid ? "gg-button--primary" : "gg-button--secondary")}
+                type="button"
+                onClick={() => { if (valid) issue(name, mobile); }}
+              >
+                Claim my card
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
 
       {who ? (
-        <div className="modal" role="dialog" aria-modal="true" aria-label={who.name} onClick={() => setWho(null)}>
-          <div className="sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="grab" />
-            <div className="cred-head">
-              <span className="cred-photo">{who.initials}</span>
-              <div>
-                <b>{who.name}, {who.suffix}</b>
-                <em>{who.role}</em>
+        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="cred-title" onClick={() => setWho(null)}>
+          <div className="gg-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="gg-dialog-header">
+              <div className="cred-head">
+                <span className="cred-photo">{who.initials}</span>
+                <div>
+                  <h3 id="cred-title">{who.name}, {who.suffix}</h3>
+                  <em>{who.role}</em>
+                </div>
               </div>
-              <button className="pill" type="button" onClick={() => setWho(null)}>Close</button>
-            </div>
-            <ul className="creds">{who.creds.map((c) => <li key={c}>{c}</li>)}</ul>
-            <div className="licence"><span>Licence</span><b>{who.licence}</b></div>
-            <p>{who.line}</p>
-            {sent ? (
-              <button className="gg-button gg-button--ghost gg-button--wide" type="button" onClick={() => setWho(null)}>Close</button>
-            ) : (
-              <button className="gg-button gg-button--primary gg-button--wide" type="button" onClick={() => { setWho(null); openClaim(); }}>
-                Book my seat
+              <button type="button" className="gg-icon-btn gg-icon-btn--ghost" aria-label="Close" onClick={() => setWho(null)}>
+                <IconX />
               </button>
-            )}
+            </div>
+            <div className="gg-dialog-body">
+              <ul className="creds">{who.creds.map((c) => <li key={c}>{c}</li>)}</ul>
+              <div className="licence"><span>Licence</span><b>{who.licence}</b></div>
+              <p>{who.line}</p>
+            </div>
+            <div className="gg-dialog-footer">
+              {sent ? (
+                <button className="gg-button gg-button--ghost" type="button" onClick={() => setWho(null)}>Close</button>
+              ) : (
+                <>
+                  <button className="gg-button gg-button--ghost" type="button" onClick={() => setWho(null)}>Cancel</button>
+                  <button className="gg-button gg-button--primary" type="button" onClick={() => { setWho(null); openClaim(); }}>
+                    Book my seat
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       ) : null}
@@ -438,7 +480,7 @@ export function GinhawaLanding() {
       {fire ? <Confetti fire={fire} /> : null}
 
       {!sent ? (
-        <div className={"stick" + (showBar ? " on" : "") + (claim ? " hide" : "")}>
+        <div className={"stick" + (showBar ? " on" : "") + (claim || who ? " hide" : "")}>
           <div className="stick-in">
             <div className="grow" style={{ flex: 1, minWidth: 0 }}>
               <b>{EVENT.date.replace("Saturday, ", "Sat ")} · {EVENT.time}</b>
