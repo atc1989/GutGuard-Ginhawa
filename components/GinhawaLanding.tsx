@@ -341,37 +341,36 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
           </section>
         </div>
 
-        <section className="why">
-          <h3 className="sec"><span className="sec-num">04</span> Why we do this</h3>
-          <p>
-            We make a gut health product, and we would rather people saw a doctor first.
-            Everyone who comes goes home with a <b>Lifestyle Card</b> carrying {landing.giftPoints} points,
-            worth ₱{landing.giftPeso} of Gutguard. For attending, not in exchange for the consultation.
-          </p>
-          <p className="why-hit">Nothing is sold here.</p>
-        </section>
-
-        <footer className="foot">
-          <div className="foot-grid">
-            <div>
-              <p>For emergencies, please go to the hospital.</p>
-              <p className="legal">
-                {landing.clinicians
-                  .map((p) => `${clinicianLabel(p)}${p.licence ? ` · ${p.licence}` : ""}`)
-                  .join(" · ")}
-                {landing.clinicians.length ? " · " : ""}
-                Gutguard Philippines Inc.
-              </p>
-            </div>
-            <nav className="foot-nav" aria-label="GutGuard">
-              <a href="#event">Event</a>
-              <a href={shop}>Shop</a>
-              <span className="topbar-soon">Lifestyle · soon</span>
-              <span className="topbar-soon">Gentrep · soon</span>
-            </nav>
-          </div>
-        </footer>
       </main>
+
+      <div className="close-band">
+        <div className="close-band-in">
+          <section className="why">
+            <h3 className="sec"><span className="sec-num">04</span> Why we do this</h3>
+            <p>We make a gut health product, and we would rather people saw a doctor first.</p>
+            <p className="why-hit">Nothing is sold here.</p>
+          </section>
+          <footer className="foot">
+            <img src="/wordmark.png" alt="Gutguard" className="foot-mark" />
+            <div className="foot-grid">
+              <p className="foot-emerg">For emergencies, please go to the hospital.</p>
+              <nav className="foot-nav" aria-label="GutGuard">
+                <a href="#event">Event</a>
+                <a href={shop}>Shop</a>
+                <span className="topbar-soon">Lifestyle <small>soon</small></span>
+                <span className="topbar-soon">Gentrep <small>soon</small></span>
+              </nav>
+            </div>
+            <p className="legal">
+              {landing.clinicians
+                .map((p) => `${clinicianLabel(p)}${p.licence ? ` · ${p.licence}` : ""}`)
+                .join(" · ")}
+              {landing.clinicians.length ? " · " : ""}
+              Gutguard Philippines Inc.
+            </p>
+          </footer>
+        </div>
+      </div>
 
       {claim && !sent ? (
         <div className="modal" role="dialog" aria-modal="true" aria-labelledby="claim-title" onClick={() => setClaim(false)}>
