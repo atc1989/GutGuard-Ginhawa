@@ -412,7 +412,6 @@ a { color: var(--gg-blue); }
 .wrap { max-width: var(--gg-content); margin: 0 auto; padding: 0 20px; }
 .wrap section { padding: 38px 0; border-bottom: 1px solid var(--gg-rule); }
 .meet-band, .ask-gut, .close-pair, .close-side { border: 0; padding: 0; }
-.meet { padding-top: 32px; }
 .sec {
   display: flex; align-items: baseline; gap: 8px;
   font-size: 11px; font-weight: 900; letter-spacing: 0.13em;
@@ -451,13 +450,16 @@ a { color: var(--gg-blue); }
   background: var(--gg-gold);
   margin-bottom: 12px;
 }
-.gut {
+/* .wrap section (0,1,1) out-specifies a bare .gut / .meet, so these carry .wrap too. */
+.wrap .gut {
   background: var(--gg-paper);
   border: 1px solid var(--gg-rule);
+  border-bottom: 1px solid var(--gg-rule);
   border-radius: var(--gg-r-md);
   padding: 24px 20px;
   box-shadow: var(--gg-shadow-card);
 }
+.wrap .meet { border-bottom: 0; padding: 32px 0 0; }
 .gut h3 { font-size: 28px; }
 .gut p { margin-top: 11px; }
 .gut-close { color: var(--gg-ink-3); font-family: var(--gg-serif); font-style: italic; }
@@ -659,7 +661,7 @@ a { color: var(--gg-blue); }
   isolation: isolate;
   background: var(--gg-bone-deep);
   border-radius: var(--gg-r-lg);
-  padding: 52px 48px;
+  padding: clamp(20px, 6vw, 52px) clamp(16px, 5vw, 48px);
 }
 .lc-stage::before {
   content: "";
@@ -670,14 +672,23 @@ a { color: var(--gg-blue); }
   z-index: 0;
 }
 
-/* —— Lifestyle / Ginhawa Pass face (preserved) —— */
+/* —— Lifestyle / Ginhawa Pass face (preserved) ——
+   Fixed ISO ID-1 proportions (85.6 × 54mm = 1.586) so the pass reads as a real
+   card at every width. --lc-w is the design width: every size inside the card is
+   in cqw, so the whole face scales as one piece and is pixel-exact at --lc-w.
+   Retune --lc-w to resize the card; nothing inside needs touching. */
 .lc {
+  --lc-w: 440px;
   position: relative;
   z-index: 1;
   width: 100%;
+  max-width: var(--lc-w);
+  aspect-ratio: 1.586;
+  margin-inline: auto;
+  container-type: inline-size;
   background: var(--lc-bg);
   border: 1px solid rgba(176, 141, 91, 0.35);
-  border-radius: 14px;
+  border-radius: 3cqw;
   overflow: hidden;
   isolation: isolate;
   box-shadow:
@@ -686,76 +697,90 @@ a { color: var(--gg-blue); }
     0 44px 70px -34px rgba(0, 27, 117, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
-button.lc { display: block; text-align: inherit; }
+button.lc { display: block; text-align: inherit; padding: 0; }
 .lc-mark {
   position: absolute; top: 50%; left: 63%;
   transform: translateY(-50%);
   height: 92%; width: auto; max-width: none;
   opacity: 0.2; pointer-events: none; z-index: 0;
 }
-.lc-body { padding: 20px 20px 16px; position: relative; z-index: 1; }
-.lc-chev {
-  position: absolute; top: 10px; right: 12px;
-  width: 26px; height: 26px; border-radius: 999px;
-  background: rgba(255,255,255,.14); color: rgba(223,215,213,.9);
-  display: grid; place-items: center; font-size: 11px;
+/* Everything below is in cqw against .lc — 1cqw = 1% of the card's width, so
+   4.17cqw is the 20px it was designed at (--lc-w).
+   ponytail: true proportional scaling means the micro-labels shrink with the
+   card — around 5px on a 320px phone. That is what a real card looks like when
+   you shrink it; if NOT YET ACTIVE / ISSUED ON THE DAY need a legibility floor,
+   put max(9px, …) on those two and buy the height back from --lc-num. */
+.lc-body {
+  position: absolute; inset: 0; z-index: 1;
+  padding: 4.17cqw 4.17cqw 3.33cqw;
+  display: flex; flex-direction: column; justify-content: center;
 }
-.lc-brand { margin-bottom: 12px; text-align: center; }
-.lc-brand img { height: 23px; width: auto; margin: 0 auto; display: block; }
+.lc-chev {
+  position: absolute; top: 2.08cqw; right: 2.5cqw;
+  width: 5.42cqw; height: 5.42cqw; border-radius: 999px;
+  background: rgba(255,255,255,.14); color: rgba(223,215,213,.9);
+  display: grid; place-items: center; font-size: 2.29cqw;
+}
+.lc-brand { margin-bottom: 2.5cqw; text-align: center; }
+.lc-brand img { height: 4.79cqw; width: auto; margin: 0 auto; display: block; }
 .lc-lifestyle {
   font-family: var(--gg-serif);
   font-style: italic;
-  font-size: 16px;
+  font-size: 3.33cqw;
   color: #dfd7d5;
-  margin-top: 1px;
+  margin-top: 0.21cqw;
 }
 .lc-name {
-  font-size: clamp(17px, 5.4vw, 22px);
+  font-size: 4.58cqw;
+  /* ponytail: 1.1 keeps a two-line name inside the fixed card box; names longer
+     than two lines would still spill — shrink --lc-name-size if that shows up. */
+  line-height: 1.1;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #fff;
   text-align: center;
-  text-shadow: 1px 2px 3px rgba(0,0,0,.4);
+  text-shadow: 0.21cqw 0.42cqw 0.63cqw rgba(0,0,0,.4);
 }
 .lc-claim {
   display: block;
   width: 100%;
   background: rgba(255, 255, 255, 0.08);
-  border: 1.5px dashed rgba(223, 215, 213, 0.72);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border: 0.31cqw dashed rgba(223, 215, 213, 0.72);
+  border-radius: 2.08cqw;
+  padding: 2.08cqw 2.5cqw;
+  font-size: 3.33cqw;
   color: #dfd7d5;
   text-align: center;
 }
 .lc-tapme {
   display: block;
-  font-size: 9.5px;
+  font-size: 1.98cqw;
   font-weight: 700;
   letter-spacing: 0.2em;
   color: #f5b716;
-  margin-top: 4px;
+  margin-top: 0.83cqw;
   text-transform: uppercase;
 }
 .lc-state {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase;
-  color: rgba(223,215,213,.55); margin-top: 4px; text-align: center;
+  font-size: 2.08cqw; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase;
+  color: rgba(223,215,213,.55); margin-top: 0.83cqw; text-align: center;
 }
 .lc-state.on { color: #f5b716; }
-.lc-no { display: block; text-align: center; font-size: 12.5px; color: rgba(223,215,213,.9); letter-spacing: 0.04em; margin-top: 6px; }
-.lc-since { text-align: center; font-size: 8.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(223,215,213,.66); margin-top: 5px; }
-.lc-row { display: flex; align-items: flex-end; gap: 10px; margin-top: 10px; }
-.lc-pad { width: 46px; flex-shrink: 0; }
+.lc-no { display: block; text-align: center; font-size: 2.6cqw; color: rgba(223,215,213,.9); letter-spacing: 0.04em; margin-top: 1.25cqw; }
+.lc-since { text-align: center; font-size: 1.77cqw; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(223,215,213,.66); margin-top: 1.04cqw; }
+.lc-row { display: flex; align-items: flex-end; gap: 2.08cqw; margin-top: 2.08cqw; }
+.lc-pad { width: 9.58cqw; flex-shrink: 0; }
 .lc-pts { flex: 1; text-align: center; }
 .lc-num {
   font-family: var(--gg-anton);
-  font-size: 60px;
+  font-size: 12.5cqw;
   line-height: 0.9;
   color: #f5b716;
-  text-shadow: 0 4px 18px rgba(0,0,0,.35);
+  text-shadow: 0 0.83cqw 3.75cqw rgba(0,0,0,.35);
 }
-.lc-lbl { font-size: 10.5px; font-weight: 700; letter-spacing: 0.3em; color: rgba(223,215,213,.85); margin-top: 4px; }
-.lc-qr { width: 46px; flex-shrink: 0; background: #fff; padding: 5px; border-radius: 8px; line-height: 0; }
+.lc-lbl { font-size: 2.19cqw; font-weight: 700; letter-spacing: 0.3em; color: rgba(223,215,213,.85); margin-top: 0.83cqw; }
+.lc-qr { width: 9.58cqw; flex-shrink: 0; background: #fff; padding: 1.04cqw; border-radius: 1.67cqw; line-height: 0; }
 
 .qrcard {
   display: flex; align-items: center; gap: 16px; margin-top: 14px;
@@ -772,8 +797,16 @@ button.lc { display: block; text-align: inherit; }
 .qr-right { flex-shrink: 0; background: #fff; padding: 10px; border-radius: var(--gg-r-md); border: 1px solid var(--gg-rule); }
 .qr-right svg { width: min(112px, 28vw); height: min(112px, 28vw); display: block; }
 
-.video { position: relative; border-radius: var(--gg-r-md); overflow: hidden; background: var(--gg-ink); aspect-ratio: 16/9; }
+.video {
+  position: relative; border-radius: var(--gg-r-md); overflow: hidden;
+  background: var(--gg-ink); aspect-ratio: var(--video-ratio, 16/9);
+}
+/* ponytail: Drive's /preview draws its own progress + control bars inside the
+   frame, so a strict 16/9 box crushes them on a phone. Extra height is a chrome
+   allowance, not the video's ratio — raise --video-ratio if Drive's UI changes. */
+.video--drive { --video-ratio: 16/10; }
 .video video, .video iframe { width: 100%; height: 100%; display: block; border: 0; }
+.video video { object-fit: contain; }
 .video iframe { position: absolute; inset: 0; }
 .video-ph {
   width: 100%; height: 100%; min-height: 0;
@@ -790,7 +823,7 @@ button.lc { display: block; text-align: inherit; }
   background: rgba(0,0,0,.6); color: #fff; font-size: 12.5px;
   font-weight: 600; padding: 4px 9px; border-radius: 6px;
 }
-.vcap { font-size: 15px; color: var(--gg-ink-3); margin-top: 12px; text-align: center; }
+.vcap { font-size: 15px; color: var(--gg-ink-3); margin-top: 12px; text-align: left; }
 
 .modal {
   position: fixed; inset: 0; z-index: 300;
@@ -969,7 +1002,6 @@ button.lc { display: block; text-align: inherit; }
     transition: transform 300ms var(--gg-ease-out);
   }
   .lc:hover { transform: rotate(0); }
-  .vcap { text-align: left; }
 }
 
 @media (min-width: 1200px) {
@@ -978,7 +1010,7 @@ button.lc { display: block; text-align: inherit; }
   .meet { grid-column: 1; grid-row: 1; }
   .ask { grid-column: 2; grid-row: 1; }
   .gut { grid-column: 1 / -1; grid-row: 2; }
-  .meet-band :is(.meet, .ask, .gut) { border-bottom: none; padding: 0; }
+  .meet-band :is(.meet, .ask) { border-bottom: none; padding: 0; }
   .meet-band .gut { padding: 24px 20px; }
   .gift-layout { grid-template-columns: 1fr 1fr; align-items: center; }
   .gift-lead { text-align: left; }
