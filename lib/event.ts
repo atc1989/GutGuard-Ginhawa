@@ -32,6 +32,7 @@ export type GinhawaLanding = {
   venueName: string | null;
   venueAddress: string | null;
   mapUrl: string | null;
+  bookUrl: string | null;
 };
 
 function str(value: unknown): string {
@@ -89,5 +90,6 @@ export function parseLandingPayload(raw: unknown): GinhawaLanding | null {
     venueName: str(row.venue_name) || null,
     venueAddress: str(row.venue_address) || null,
     mapUrl: str(row.map_url) || null,
+    bookUrl: str(row.book_url) || null,
   };
 }
