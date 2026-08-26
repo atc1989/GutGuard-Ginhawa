@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { GinhawaEmpty, GinhawaLanding } from "@/components/GinhawaLanding";
 import { getPublishedLanding } from "@/lib/landing";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const landing = await getPublishedLanding();

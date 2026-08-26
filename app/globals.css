@@ -564,7 +564,10 @@ a { color: var(--gg-blue); }
   border-radius: calc(var(--gg-r-md) - 2px);
   min-height: 160px; background: var(--gg-bone-deep);
 }
-.venue-map img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.venue-map img,
+.venue-map iframe {
+  width: 100%; height: 100%; min-height: 200px; object-fit: cover; display: block; border: 0;
+}
 .close-band {
   flex: 1;
   color: var(--gg-bone);
