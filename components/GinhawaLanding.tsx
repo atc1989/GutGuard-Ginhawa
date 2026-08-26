@@ -142,7 +142,7 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
 
   return (
     <div id="top">
-      <TopBar />
+      <TopBar bookUrl={landing.bookUrl} />
 
       <header className="hero" id="event">
         <img src="/watermark.png" alt="" aria-hidden="true" className="hero-g" />
@@ -401,14 +401,14 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
               <span className="soon">Lifestyle <span className="soon-tag">soon</span></span>
               <span className="soon">Gentrep <span className="soon-tag">soon</span></span>
             </nav>
-            <p className="legal">
-              {landing.clinicians
-                .map((p) => `${clinicianLabel(p)}${p.licence ? ` · ${p.licence}` : ""}`)
-                .join(" · ")}
-              {landing.clinicians.length ? " · " : ""}
-              Gutguard Philippines Inc.
-            </p>
           </footer>
+          <p className="legal">
+            {landing.clinicians
+              .map((p) => `${clinicianLabel(p)}${p.licence ? ` · ${p.licence}` : ""}`)
+              .join(" · ")}
+            {landing.clinicians.length ? " · " : ""}
+            Gutguard Philippines Inc.
+          </p>
         </div>
       </div>
 
