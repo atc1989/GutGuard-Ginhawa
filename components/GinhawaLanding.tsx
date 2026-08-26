@@ -187,7 +187,11 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
       <main className="wrap">
         <div className="meet-band">
           <section className="meet">
-            <div className="video" role="group" aria-label="Video: meet the doctor and nurse">
+            <div
+              className={"video" + (video?.kind === "drive" ? " video--drive" : "")}
+              role="group"
+              aria-label="Video: meet the doctor and nurse"
+            >
               {video?.kind === "drive" ? (
                 <iframe
                   src={video.src}
