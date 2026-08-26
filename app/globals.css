@@ -688,7 +688,7 @@ a { color: var(--gg-blue); }
   container-type: inline-size;
   background: var(--lc-bg);
   border: 1px solid rgba(176, 141, 91, 0.35);
-  border-radius: 3cqw;
+  border-radius: max(24px, 3cqw);
   overflow: hidden;
   isolation: isolate;
   box-shadow:
