@@ -294,7 +294,10 @@ a { color: var(--gg-blue); }
   padding: 28px 20px 36px;
 }
 .hero-g {
-  position: absolute; top: 8%; left: -12%; right: auto;
+  position: absolute;
+  top: 8%;
+  left: max(0px, calc(50% - var(--gg-content) / 2));
+  right: auto;
   transform: none;
   height: 92%; width: auto; max-width: none;
   opacity: 0.12; pointer-events: none;
@@ -499,26 +502,56 @@ a { color: var(--gg-blue); }
 .legal { font-size: 12.5px; margin-top: 8px; color: var(--gg-ink-4); }
 .foot-nav { display: none; }
 
-.gift-lead { text-align: center; margin-bottom: 18px; }
+.gift-layout { display: grid; gap: 40px; align-items: center; }
+.gift-lead { grid-column: 1 / -1; text-align: center; }
 .gift-lead .sec { justify-content: center; margin-bottom: 8px; }
 .gift-lead h3 { font-size: 32px; margin-top: 8px; }
-.gift-notes { margin-top: 20px; display: grid; gap: 14px; }
+.gift-notes {
+  display: grid;
+  gap: 14px;
+  border-left: 1px solid var(--gg-rule);
+  padding-left: 18px;
+}
 .gn { display: flex; gap: 12px; align-items: flex-start; }
-.gn .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gg-gold); flex-shrink: 0; margin-top: 8px; }
+.gn .dot { display: none; }
 .gn b { display: block; }
 .gn em { display: block; font-style: normal; color: var(--gg-ink-3); margin-top: 3px; }
 .gift-fine { font-size: 13.5px; color: var(--gg-ink-3); margin-top: 18px; text-align: center; }
 .shop-note { margin-top: 16px; text-align: center; }
 
+.lc-stage {
+  position: relative;
+  isolation: isolate;
+  background: var(--gg-bone-deep);
+  border-radius: var(--gg-r-lg);
+  padding: 52px 48px;
+}
+.lc-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 48%, rgba(0, 27, 117, 0.16), transparent 64%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* —— Lifestyle / Ginhawa Pass face (preserved) —— */
 .lc {
   position: relative;
+  z-index: 1;
+  width: 100%;
   background: var(--lc-bg);
+  border: 1px solid rgba(176, 141, 91, 0.35);
   border-radius: 14px;
   overflow: hidden;
   isolation: isolate;
-  box-shadow: 0 26px 50px -22px rgba(0, 27, 117, 0.55);
+  box-shadow:
+    0 2px 4px rgba(0, 27, 117, 0.35),
+    0 14px 28px -10px rgba(0, 27, 117, 0.45),
+    0 44px 70px -34px rgba(0, 27, 117, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
+button.lc { display: block; text-align: inherit; }
 .lc-mark {
   position: absolute; top: 50%; left: 63%;
   transform: translateY(-50%);
@@ -551,12 +584,14 @@ a { color: var(--gg-blue); }
   text-shadow: 1px 2px 3px rgba(0,0,0,.4);
 }
 .lc-claim {
+  display: block;
   width: 100%;
-  background: transparent;
-  border: 1.5px dashed rgba(223,215,213,.5);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px dashed rgba(223, 215, 213, 0.72);
   border-radius: 10px;
-  padding: 8px 10px;
-  color: rgba(223,215,213,.85);
+  padding: 10px 12px;
+  color: #dfd7d5;
+  text-align: center;
 }
 .lc-tapme {
   display: block;
@@ -572,7 +607,7 @@ a { color: var(--gg-blue); }
   color: rgba(223,215,213,.55); margin-top: 4px; text-align: center;
 }
 .lc-state.on { color: #f5b716; }
-.lc-no { text-align: center; font-size: 12.5px; color: rgba(223,215,213,.9); letter-spacing: 0.1em; margin-top: 6px; }
+.lc-no { display: block; text-align: center; font-size: 12.5px; color: rgba(223,215,213,.9); letter-spacing: 0.04em; margin-top: 6px; }
 .lc-since { text-align: center; font-size: 8.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(223,215,213,.66); margin-top: 5px; }
 .lc-row { display: flex; align-items: flex-end; gap: 10px; margin-top: 10px; }
 .lc-pad { width: 46px; flex-shrink: 0; }
@@ -786,13 +821,18 @@ a { color: var(--gg-blue); }
   .foot-nav { display: flex; flex-wrap: wrap; gap: 14px 20px; justify-content: flex-end; }
   .foot-nav a, .foot-nav span { font-size: 14px; font-weight: 600; color: var(--gg-ink-2); text-decoration: none; }
   .foot-nav a:hover { color: var(--gg-blue); }
+  .lc {
+    transform: rotate(-1.5deg);
+    transition: transform 300ms var(--gg-ease-out);
+  }
+  .lc:hover { transform: rotate(0); }
 }
 
 @media (min-width: 1200px) {
   .meet-band { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 40px; align-items: start; padding-top: 20px; }
   .meet-band .meet, .meet-band .ask-gut > section { border-bottom: none; padding-top: 24px; }
   .ask-gut { grid-template-columns: 1fr; }
-  .gift-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .gift-layout { grid-template-columns: 1fr 1fr; align-items: center; }
   .gift-lead { text-align: left; }
   .gift-lead .sec { justify-content: flex-start; }
   .gift-fine, .shop-note { text-align: left; }
@@ -803,5 +843,5 @@ a { color: var(--gg-blue); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stick-in, .gg-button, .cf { transition: none; animation: none; }
+  .stick-in, .gg-button, .cf, .lc, .lc:hover { transition: none; animation: none; transform: none; }
 }
