@@ -77,6 +77,17 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
       height={420}
     />
   );
+  const mapVisual = landing.mapEmbedSrc ? (
+    <iframe
+      src={landing.mapEmbedSrc}
+      title={landing.venueName ? `Map of ${landing.venueName}` : "Map of the venue"}
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+      allowFullScreen
+    />
+  ) : (
+    mapImg
+  );
   const showAsk = Boolean(landing.askTitle || landing.askBody || landing.askHit);
   const showGut = Boolean(landing.gutTitle || landing.gutBody || landing.gutClose);
   const sent = Boolean(holder);
@@ -366,12 +377,12 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
                       ) : null}
                     </div>
                   </div>
-                  {landing.mapUrl ? (
+                  {landing.mapUrl && !landing.mapEmbedSrc ? (
                     <a className="venue-map" href={landing.mapUrl} target="_blank" rel="noreferrer">
-                      {mapImg}
+                      {mapVisual}
                     </a>
                   ) : (
-                    <div className="venue-map">{mapImg}</div>
+                    <div className="venue-map">{mapVisual}</div>
                   )}
                 </div>
               </article>
