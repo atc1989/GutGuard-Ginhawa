@@ -843,5 +843,5 @@ button.lc { display: block; text-align: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stick-in, .gg-button, .cf, .lc { transition: none; animation: none; transform: none; }
+  .stick-in, .gg-button, .cf, .lc, .lc:hover { transition: none; animation: none; transform: none; }
 }
