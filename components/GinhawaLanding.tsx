@@ -142,7 +142,7 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
 
   return (
     <div id="top">
-      <TopBar />
+      <TopBar bookUrl={landing.bookUrl} />
 
       <header className="hero" id="event">
         <img src="/watermark.png" alt="" aria-hidden="true" className="hero-g" />
