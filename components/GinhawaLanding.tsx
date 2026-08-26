@@ -24,6 +24,15 @@ function IconChevron() {
   );
 }
 
+function IconPin() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </svg>
+  );
+}
+
 function TitleLines({ title }: { title: string }) {
   const lines = title.split("\n");
   return (
@@ -58,6 +67,16 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
   const left = seats == null ? null : Math.max(seats - taken, 0);
   const video = resolveVideo(landing.videoUrl);
   const showVenue = Boolean(landing.venueName || landing.venueAddress || landing.mapUrl);
+  const showWhen = Boolean(landing.dateLabel || landing.timeLabel);
+  const showWhere = showVenue || showWhen;
+  const mapImg = (
+    <img
+      src="/venue-map.png"
+      alt={landing.venueName ? `Map of ${landing.venueName}` : "Map of the venue"}
+      width={640}
+      height={420}
+    />
+  );
   const showAsk = Boolean(landing.askTitle || landing.askBody || landing.askHit);
   const showGut = Boolean(landing.gutTitle || landing.gutBody || landing.gutClose);
   const sent = Boolean(holder);
@@ -318,28 +337,51 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
           </div>
         </section>
 
-        <div className="close-pair">
-          {showVenue ? (
-            <section className="where">
-              <h3 className="sec"><span className="sec-num">03</span> Where</h3>
-              <div className="venue">
-                {landing.venueName ? <b>{landing.venueName}</b> : null}
-                {landing.venueAddress ? <em>{landing.venueAddress}</em> : null}
-                {landing.mapUrl ? (
-                  <a className="gg-button gg-button--text" href={landing.mapUrl} target="_blank" rel="noreferrer">Open in Google Maps</a>
-                ) : null}
-              </div>
-            </section>
-          ) : null}
-          <section className="bring">
-            <h3 className="sec">Bring with you</h3>
-            <ul>
-              <li>Your medicines — including herbal ones</li>
-              <li>Any recent lab results</li>
-              <li>Someone with you, if you would rather not come alone</li>
-            </ul>
-          </section>
-        </div>
+        <section className="logistics">
+          <h3 className="sec"><span className="sec-num">03</span> Before you come</h3>
+          <div className="close-pair">
+            {showWhere ? (
+              <article className="where">
+                <h4 className="sec">Where and when</h4>
+                <div className="where-split">
+                  <div className="where-copy">
+                    {showWhen ? (
+                      <div className="when">
+                        {landing.dateLabel ? <b>{landing.dateLabel}</b> : null}
+                        {landing.timeLabel ? <span>{landing.timeLabel}</span> : null}
+                      </div>
+                    ) : null}
+                    <div className="venue">
+                      {landing.venueName ? <b>{landing.venueName}</b> : null}
+                      {landing.venueAddress ? <em>{landing.venueAddress}</em> : null}
+                      {landing.mapUrl ? (
+                        <a className="gg-button gg-button--ghost" href={landing.mapUrl} target="_blank" rel="noreferrer">
+                          <IconPin />
+                          Open in Google Maps
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                  {landing.mapUrl ? (
+                    <a className="venue-map" href={landing.mapUrl} target="_blank" rel="noreferrer">
+                      {mapImg}
+                    </a>
+                  ) : (
+                    <div className="venue-map">{mapImg}</div>
+                  )}
+                </div>
+              </article>
+            ) : null}
+            <aside className="bring">
+              <h4 className="sec">Bring with you</h4>
+              <ul>
+                <li>Your medicines — including herbal ones</li>
+                <li>Any recent lab results</li>
+                <li>Someone with you, if you would rather not come alone</li>
+              </ul>
+            </aside>
+          </div>
+        </section>
 
       </main>
 
