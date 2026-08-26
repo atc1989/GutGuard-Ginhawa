@@ -524,7 +524,13 @@ a { color: var(--gg-blue); }
   color: var(--gg-bone);
   background: linear-gradient(180deg, rgba(15,15,24,.96), rgba(4,6,122,.94)), #0f0f18;
 }
-.close-band-in { max-width: var(--gg-content); margin: 0 auto; padding: 8px 20px 56px; }
+.close-band-in {
+  max-width: var(--gg-content);
+  margin: 0 auto;
+  padding: 8px 20px 56px;
+  display: grid;
+  gap: 8px;
+}
 .close-band .why { padding: 48px 0 28px; border-bottom: 0; }
 .close-band .sec { color: var(--gg-gold-soft); }
 .close-band .sec-num { color: var(--gg-gold); }
@@ -886,7 +892,16 @@ button.lc { display: block; text-align: inherit; }
   .doc { flex: 0 0 auto; }
   .stick { display: none; }
   .wrap { padding: 0 32px; }
-  .close-band-in { padding: 8px 32px 64px; }
+  .close-band-in {
+    padding: 8px 32px 64px;
+    grid-template-columns: 1.3fr 0.7fr;
+    column-gap: 48px;
+    row-gap: 36px;
+    align-items: start;
+  }
+  .close-band .why { padding: 48px 0 0; }
+  .foot { padding-top: 48px; }
+  .legal { grid-column: 1 / -1; margin-top: 0; }
   .ask-gut { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: stretch; }
   .ask-gut > section { border-bottom: none; }
   .close-pair:has(> :nth-child(2)) { grid-template-columns: 1.3fr 0.7fr; gap: 24px; align-items: start; }
