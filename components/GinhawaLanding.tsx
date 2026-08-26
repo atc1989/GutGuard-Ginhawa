@@ -351,16 +351,14 @@ export function GinhawaLanding({ landing }: { landing: GinhawaLanding }) {
             <p className="why-hit">Nothing is sold here.</p>
           </section>
           <footer className="foot">
-            <img src="/wordmark.png" alt="Gutguard" className="foot-mark" />
-            <div className="foot-grid">
-              <p className="foot-emerg">For emergencies, please go to the hospital.</p>
-              <nav className="foot-nav" aria-label="GutGuard">
-                <a href="#event">Event</a>
-                <a href={shop}>Shop</a>
-                <span className="topbar-soon">Lifestyle <small>soon</small></span>
-                <span className="topbar-soon">Gentrep <small>soon</small></span>
-              </nav>
-            </div>
+            <img src="/wordmark.png" alt="Gutguard" className="foot-mark" width={120} height={21} />
+            <p className="foot-emerg">For emergencies, please go to the hospital.</p>
+            <nav className="foot-nav" aria-label="GutGuard">
+              <a href="#event">Event</a>
+              <a href={shop}>Shop</a>
+              <span className="soon">Lifestyle <span className="soon-tag">soon</span></span>
+              <span className="soon">Gentrep <span className="soon-tag">soon</span></span>
+            </nav>
             <p className="legal">
               {landing.clinicians
                 .map((p) => `${clinicianLabel(p)}${p.licence ? ` · ${p.licence}` : ""}`)
